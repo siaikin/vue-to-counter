@@ -1,3 +1,5 @@
+import { PartDataOptions } from "./composables/use-part-data.ts";
+
 export interface VueToCounterBaseProps<V> {
   value: V;
   /**
@@ -27,6 +29,16 @@ export interface VueToCounterBaseProps<V> {
    */
   color?: string;
   /**
+   * 当**位数不足**时, 强制补全的 [整数, 小数] 位数. 为空时位数自适应.
+   */
+  minPlaces?: [number, number];
+  /**
+   * 可以通过该属性将数字转换为你想要的任意字符串.
+   *
+   * @default ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
+   */
+  digitToChar?: Record<string | number, string> | string[];
+  /**
    * 调试模式下将:
    * 1. 不再隐藏溢出的数字. overflow: hidden; -> overflow: visible;
    *
@@ -38,6 +50,7 @@ export const VueToCounterBasePropsDefault = {
   duration: 1000,
   locale: "en-US",
   color: "white",
+  digitToChar: () => ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"],
 } as const;
 
 export interface VueToCounterDatetimeProps
@@ -76,20 +89,49 @@ export const VueToCounterDatetimeDurationPropsDefault = {
 export interface VueToCounterNumberProps
   extends VueToCounterBaseProps<number | string> {
   localeNumber?: Intl.NumberFormatOptions;
-  /**
-   * 当**位数不足**时, 强制补全的 [整数, 小数] 位数. 为空时位数自适应.
-   */
-  minPlaces?: [number, number];
 }
 export const VueToCounterNumberPropsDefault = {
   ...VueToCounterBasePropsDefault,
 } as const;
 
-// export interface VueToCounterStringProps extends VueToCounterBaseProps<string> {
-// nothing
-// }
+export interface VueToCounterStringProps extends VueToCounterBaseProps<string> {
+  chars?: string;
+}
 export const VueToCounterStringPropsDefault = {
   ...VueToCounterBasePropsDefault,
+  chars: "",
+} as const;
+
+export interface VueToCounterProps
+  extends VueToCounterBaseProps<
+    /**
+     * 支持的数值类型有 {@link number}, {@link number[]} 和 {@link string}.
+     * 1. {@link number} 表示一个整数或浮点数. 内部直接根据数字进行插值.
+     * 2. {@link string} 表示一个字符串. 其中每个字符在去重后作为一个进制位, 然后将字符串转换为数字进行插值.
+     *    例: "Hello" -> ["H", "e", "l", "o"] 得到一个四进制映射数组. "Hello" 可以转换为四进制数, 进而转换为十进制数.
+     * 3. {@link number[]} 表示一个整数数组. 这是 {@link string} 的变体, 数字数组的每一项表示一个代码点,
+     *    内部通过 {@link String.fromCodePoint} 将其转换为字符串, 然后按照 {@link string} 的规则进行插值.
+     */
+    number | number[] | string
+  > {
+  /**
+   * 自定义字符集, 传入的 {@link value} 的字符串表示形式的每个字符都必须被包含在该字符集中.
+   *
+   * @default 从 {@link digitToChar} 中获取.
+   */
+  alphabet?: string;
+  partDataOptions?: Partial<
+    Pick<
+      PartDataOptions,
+      "decimalSeparator" | "sampleCount" | "sampleSplit" | "sampleToString"
+    >
+  >;
+  tag?: string;
+}
+export const VueToCounterPropsDefault = {
+  ...VueToCounterBasePropsDefault,
+  tag: "span",
+  partDataOptions: () => ({}),
 } as const;
 
 export interface PartData {

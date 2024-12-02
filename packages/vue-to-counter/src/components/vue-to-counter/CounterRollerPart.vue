@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { CSSProperties, onMounted, PropType, ref, toRefs } from "vue";
+import { computed, CSSProperties, onMounted, PropType, ref, toRefs } from "vue";
 import { v4 as uuid } from "uuid";
-import { watchTriggerable } from "@vueuse/core";
+import { useElementSize, watchTriggerable } from "@vueuse/core";
+import { isEqual } from "lodash-es";
 
 const props = defineProps({
   partId: {
@@ -59,23 +60,29 @@ function handleAfterEnter() {}
 const transitionKey = ref(uuid());
 const { trigger } = watchTriggerable(
   () => [direction.value, digits.value, duration.value, partId.value] as const,
-  (value) => {
+  (value, oldValue) => {
     /**
      * 以下代码块用于判断是否需要启动滚动动画.
      * 下列情况将直接显示并删除上次动画结束后保留的样式:
      * 1. 当新的滚动数据(即 digits)长度为 1 时.
      * 2. 当滚动数据头尾相同时.
+     * 3. 当前滚动数据与上一次全等时.
      */
     {
       const [, newDigits] = value;
+      const [, oldDigits] = oldValue ?? [];
 
       let earlyReturn = "";
-      if (newDigits.length === 1) earlyReturn = "only one digit";
+      if (newDigits.length === 1) {
+        earlyReturn = "only one digit";
+        animation?.cancel();
+      }
       if (newDigits[0] === newDigits[newDigits.length - 1])
-        earlyReturn = "same direction, same head and tail";
+        earlyReturn = "same head and tail";
+      if (isEqual(newDigits, oldDigits)) earlyReturn = "same digits";
 
       if (earlyReturn) {
-        animation?.cancel();
+        // animation?.cancel();
         return;
       }
     }
@@ -84,16 +91,28 @@ const { trigger } = watchTriggerable(
   }
 );
 onMounted(() => trigger());
+
+const rollDigitListRef = ref<HTMLSpanElement | null>(null);
+const { width } = useElementSize(rollDigitListRef);
+const placeholderWidth = computed(() => `${Math.round(width.value)}px`);
 </script>
 
 <template>
   <span ref="rootRef" class="relative">
     <!--    占位      -->
-    <span class="inline-block invisible">0</span>
+    <span class="inline-block" :style="{ width: placeholderWidth }" />
+    <span
+      ref="rollDigitListRef"
+      class="absolute -z-10 invisible inline-flex flex-col text-nowrap"
+    >
+      <span v-for="(digit, digitIndex) in digits" :key="digitIndex">
+        {{ digit }}
+      </span>
+    </span>
     <transition @enter="handleEnter" @after-enter="handleAfterEnter">
       <span
         :key="transitionKey"
-        class="absolute left-0 inline-flex flex-col w-full"
+        class="absolute left-0 inline-flex flex-col items-center w-full"
         :class="{
           /**
            * 向上(up)滚动时, 使滚动列表顶部对齐以便于应用 `translationY(-100%)` 实现向上滚动效果
@@ -107,14 +126,14 @@ onMounted(() => trigger());
           <template v-for="(digit, digitIndex) in digits" :key="digitIndex">
             <span
               v-if="direction === 'up' && digitIndex === digits.length - 1"
-              class="absolute left-0 top-full"
+              class="absolute top-full"
               :style="textStyle"
             >
               {{ digit }}
             </span>
             <span
               v-else-if="direction === 'down' && digitIndex === 0"
-              class="absolute left-0 bottom-full"
+              class="absolute bottom-full"
               :style="textStyle"
             >
               {{ digit }}

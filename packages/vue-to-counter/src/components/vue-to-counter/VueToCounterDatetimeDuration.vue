@@ -5,7 +5,6 @@ import {
   computed,
   withDefaults,
   toValue,
-  ref,
   toRef,
 } from "vue";
 import { iso8601Duration } from "./utils/iso8601-duration.ts";
@@ -13,22 +12,21 @@ import {
   DurationPartMillisecond,
   VueToCounterDatetimeDurationProps,
   VueToCounterDatetimeDurationPropsDefault,
+  VueToCounterProps,
 } from "./types.ts";
-import { duration as genDuration, durationObject } from "./utils/duration.ts";
+import { durationObject } from "./utils/duration.ts";
 import { usePrecision } from "./composables/use-precision.ts";
-import { useDifference } from "./composables/use-difference.ts";
-import CounterRoller from "./CounterRoller.vue";
 import { useLocalizedDateTimeFields } from "./composables/use-localized-date-time-fields.ts";
 import { isDate, toDate } from "date-fns";
-import { usePartData } from "./composables/use-part-data.ts";
 import { useLocale } from "./composables/use-locale.ts";
-import { useDirection } from "./composables/use-direction.ts";
+import VueToCounter from "./VueToCounter.vue";
+import { duration as genDuration } from "./utils/duration.ts";
 
 const props = withDefaults(
   defineProps<VueToCounterDatetimeDurationProps>(),
   VueToCounterDatetimeDurationPropsDefault
 );
-const { duration, color, precision } = toRefs(props);
+const { precision } = toRefs(props);
 
 const locale = useLocale(toRef(props, "locale"));
 
@@ -57,20 +55,16 @@ const optimizedFrom = computed(() => {
   );
 });
 
-const durationInMilliseconds = useDifference(
-  computed(() => toValue(optimizedFrom)),
-  computed(() => toValue(to).getTime())
+const fromToDuration = computed(
+  () => toValue(to).getTime() - toValue(optimizedFrom)
 );
-
-const direction = useDirection(durationInMilliseconds);
 
 const availableDurationPartTypes = computed(() =>
   toValue(availableDurationParts).map((part) => part.type)
 );
 
-const durationPartData = usePartData({
-  value: durationInMilliseconds,
-  onSamplePost: (samples) => {
+const partDataOptions = computed<VueToCounterProps["partDataOptions"]>(() => ({
+  sampleSplit: (samples) => {
     const toTimeValue = toValue(to).getDate();
     const availableDurationPartTypesValue = toValue(availableDurationPartTypes);
 
@@ -89,57 +83,73 @@ const durationPartData = usePartData({
 
     return tempParts;
   },
-});
+}));
 
 /**
  * @see https://developer.mozilla.org/en-US/docs/Web/HTML/Element/time#datetime
  */
 const datetimeAttribute = computed(() => {
   const toTimeValue = toValue(to).getTime();
-  const [durationInMillisecondsValue] = toValue(durationInMilliseconds);
+  const fromToDurationValue = toValue(fromToDuration);
   const availableDurationPartTypesValue = toValue(availableDurationPartTypes);
   return iso8601Duration(
     durationObject(
-      new Date(Math.min(durationInMillisecondsValue, toTimeValue)),
-      new Date(Math.max(durationInMillisecondsValue, toTimeValue)),
+      new Date(Math.min(fromToDurationValue, toTimeValue)),
+      new Date(Math.max(fromToDurationValue, toTimeValue)),
       availableDurationPartTypesValue
     )
   );
 });
-
-const backgroundClippedPartContainer = ref<HTMLTimeElement>();
 </script>
 
 <template>
-  <time
-    ref="backgroundClippedPartContainer"
-    class="counter-mask"
+  <VueToCounter
     :datetime="datetimeAttribute"
-    :class="{
-      debug: debug,
-    }"
+    v-bind="props"
+    :value="fromToDuration"
+    :part-data-options="partDataOptions"
   >
-    <CounterRoller
-      :container="backgroundClippedPartContainer"
-      :data="durationPartData"
-      :duration="duration"
-      :locale="locale"
-      :color="color"
-      :direction="direction"
-    >
-      <template #prefix>
-        <slot name="prefix" />
-      </template>
-      <template #suffix>
-        <slot name="suffix" />
-      </template>
-      <template #partSuffix="{ index }">
-        <span :style="{ fontSize: '0.4em' }">
-          {{ dateTimeFieldLabels[availableDurationPartTypes[index]] }}
-        </span>
-      </template>
-    </CounterRoller>
-  </time>
+    <template #prefix>
+      <slot name="prefix" />
+    </template>
+    <template #suffix>
+      <slot name="suffix" />
+    </template>
+    <template #partSuffix="{ index }">
+      <span :style="{ fontSize: '0.4em' }">
+        {{ dateTimeFieldLabels[availableDurationPartTypes[index]] }}
+      </span>
+    </template>
+  </VueToCounter>
+
+  <!--  <time-->
+  <!--    ref="backgroundClippedPartContainer"-->
+  <!--    class="counter-mask"-->
+  <!--    :datetime="datetimeAttribute"-->
+  <!--    :class="{-->
+  <!--      debug: debug,-->
+  <!--    }"-->
+  <!--  >-->
+  <!--    <CounterRoller-->
+  <!--      :container="backgroundClippedPartContainer"-->
+  <!--      :data="durationPartData"-->
+  <!--      :duration="duration"-->
+  <!--      :color="color"-->
+  <!--      :direction="direction"-->
+  <!--    >-->
+  <!--      <template #prefix>-->
+  <!--        <slot name="prefix" />-->
+  <!--      </template>-->
+  <!--      <template #suffix>-->
+  <!--        <slot name="suffix" />-->
+  <!--      </template>-->
+  <!--      <template #partSuffix="{ index }">-->
+  <!--        <span :style="{ fontSize: '0.4em' }">-->
+  <!--          {{ dateTimeFieldLabels[availableDurationPartTypes[index]] }}-->
+  <!--        </span>-->
+  <!--      </template>-->
+  <!--    </CounterRoller>-->
+  <!--  </time>-->
 </template>
 
 <style lang="scss" scoped>

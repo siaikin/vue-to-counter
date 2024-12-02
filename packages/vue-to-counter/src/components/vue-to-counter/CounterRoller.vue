@@ -21,13 +21,6 @@ const props = defineProps({
     type: Object as PropType<PartData[]>,
     required: true,
   },
-  locale: {
-    type: [String, Object] as PropType<
-      | Intl.UnicodeBCP47LocaleIdentifier
-      | [Intl.UnicodeBCP47LocaleIdentifier, Intl.LocaleOptions]
-    >,
-    required: true,
-  },
   color: {
     type: String,
     required: true,
@@ -61,7 +54,6 @@ const backgroundClippedPartSuffix = ref<HTMLSpanElement>();
 const backgroundClippedPartStyleMap = ref(new Map<string, CSSProperties>());
 const previousData = ref(data.value);
 watchEffect(() => {
-  console.log("watchEffect");
   const result: Map<string, CSSProperties> = new Map();
 
   const containerValue = container?.value;
@@ -97,7 +89,6 @@ watchEffect(() => {
   } finally {
     previousData.value = data.value;
   }
-  console.log("pass");
 
   if (prefixValue) partsValue.unshift(prefixValue);
   if (suffixValue) partsValue.push(suffixValue);
