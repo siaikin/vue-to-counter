@@ -1,19 +1,35 @@
 <script setup lang="ts">
-import { defineProps, computed, withDefaults, ref, watch } from "vue";
+import { defineProps, computed, withDefaults, ref, watch, toRef } from "vue";
 import { VueToCounterProps, VueToCounterPropsDefault } from "./types.ts";
 import CounterRoller from "./CounterRoller.vue";
 import { useDirection } from "./composables/use-direction.ts";
 import { usePartData } from "./composables/use-part-data.ts";
 import { anyBase } from "./utils/any-base.ts";
-import { isArray, isNumber } from "lodash-es";
-import { toRefs } from "@vueuse/core";
+import { clone, isArray, isEqual, isNumber } from "lodash-es";
+import { toRefs, watchWithFilter } from "@vueuse/core";
 
 const props = withDefaults(
   defineProps<VueToCounterProps>(),
   VueToCounterPropsDefault
 );
-const { value, duration, color, minPlaces, partDataOptions, tag } =
-  toRefs(props);
+const { duration, color, minPlaces, partDataOptions, tag } = toRefs(props);
+
+const value = ref(clone(props.value));
+watchWithFilter(
+  toRef(props, "value"),
+  /**
+   * 最复杂的参数也只是 `number[]` 类型, 不需要 `cloneDeep`
+   */
+  (v) => (value.value = clone(v)),
+  {
+    eventFilter: (invoke, options) =>
+      isEqual(options.args[0], value.value) || invoke(),
+    /**
+     * 启用 `deep` 选项, 可以在 value 类型为 `number[]` 时, 支持 `:value="[variable]"` 传参方式.
+     */
+    deep: true,
+  }
+);
 
 const digitToChar = computed(() => {
   const digitToCharValue = props.digitToChar;
@@ -73,16 +89,10 @@ const direction = useDirection(valueDifferences);
 const durationPartData = usePartData({
   value: valueDifferences,
   sampleSplit: (samples) => [samples.slice()],
-  sampleToString: (value) => {
-    console.log(
-      needToConvert.value
-        ? decimalToAnyBase.value(value.toString(10))
-        : value.toString(10)
-    );
-    return needToConvert.value
+  sampleToString: (value) =>
+    needToConvert.value
       ? decimalToAnyBase.value(value.toString(10))
-      : value.toString(10);
-  },
+      : value.toString(10),
   minPlaces,
   digitToChar,
   ...toRefs(partDataOptions),
@@ -96,9 +106,7 @@ const backgroundClippedPartContainer = ref<HTMLSpanElement>();
     :is="tag"
     ref="backgroundClippedPartContainer"
     class="counter-mask"
-    :class="{
-      debug: debug,
-    }"
+    :class="{ debug }"
   >
     <CounterRoller
       :container="backgroundClippedPartContainer"
