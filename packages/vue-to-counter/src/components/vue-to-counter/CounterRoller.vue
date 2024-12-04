@@ -33,6 +33,10 @@ const props = defineProps({
     type: String as PropType<"up" | "down">,
     required: true,
   },
+  animationOptions: {
+     
+    type: Object as PropType<Partial<Pick<KeyframeEffectOptions, "easing">>>,
+  },
 });
 const { data, color, container } = toRefs(props);
 
@@ -159,6 +163,7 @@ export default {
         :direction="direction"
         :digits="digit"
         :title="`${partData.tailNumber}`"
+        :animation-options="animationOptions"
       />
     </span>
     <span

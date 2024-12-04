@@ -114,6 +114,7 @@ const backgroundClippedPartContainer = ref<HTMLSpanElement>();
       :duration="duration"
       :color="color"
       :direction="direction"
+      :animation-options="animationOptions"
     >
       <template #prefix>
         <slot name="prefix" />

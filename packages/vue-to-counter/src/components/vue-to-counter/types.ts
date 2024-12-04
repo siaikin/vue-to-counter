@@ -39,6 +39,10 @@ export interface VueToCounterBaseProps<V> {
    */
   digitToChar?: Record<string | number, string> | string[];
   /**
+   * 动画选项. 目前仅支持 `easing`.
+   */
+  animationOptions?: Partial<Pick<KeyframeEffectOptions, "easing">>;
+  /**
    * 调试模式下将:
    * 1. 不再隐藏溢出的数字. overflow: hidden; -> overflow: visible;
    *

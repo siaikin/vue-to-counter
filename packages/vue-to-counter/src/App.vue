@@ -3,6 +3,12 @@ import { ref } from "vue";
 
 const debug = ref(true);
 const value = ref(0);
+// onMounted(() => {
+//   setInterval(() => {
+//     value.value = 0;
+//     setTimeout(() => (value.value = 60));
+//   }, 1000);
+// });
 const duration = ref(1000);
 const color = ref(
   "linear-gradient(135deg, rgba(30,87,153,0) 0%,rgba(30,87,153,0.8) 15%,rgba(30,87,153,1) 19%,rgba(30,87,153,1) 20%,rgba(41,137,216,1) 50%,rgba(30,87,153,1) 80%,rgba(30,87,153,1) 81%,rgba(30,87,153,0.8) 85%,rgba(30,87,153,0) 100%)"
@@ -83,6 +89,10 @@ const digitToChar = ref([
   "机械工程师",
   "鱼人先知",
 ]);
+const animationOptions = ref({
+  easing:
+    "linear(0, 0.004, 0.016, 0.035, 0.063, 0.098, 0.141 13.6%, 0.25, 0.391, 0.563, 0.765, 1, 0.891 40.9%, 0.848, 0.813, 0.785, 0.766, 0.754, 0.75, 0.754, 0.766, 0.785, 0.813, 0.848, 0.891 68.2%, 1 72.7%, 0.973, 0.953, 0.941, 0.938, 0.941, 0.953, 0.973, 1, 0.988, 0.984, 0.988, 1)",
+});
 </script>
 
 <template>
@@ -96,6 +106,8 @@ const digitToChar = ref([
       :locale="locale"
       :min-places="minPlaces"
       :digit-to-char="digitToChar"
+      :part-data-options="{ sampleCount: digitToChar.length }"
+      :animation-options="animationOptions"
     >
       <template #prefix>{{ prefix }}</template>
       <template #suffix>{{ suffix }}</template>

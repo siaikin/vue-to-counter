@@ -1,5 +1,13 @@
 <script setup lang="ts">
-import { computed, CSSProperties, onMounted, PropType, ref, toRefs } from "vue";
+import {
+  computed,
+  CSSProperties,
+  onMounted,
+  PropType,
+  ref,
+  toRefs,
+  toValue,
+} from "vue";
 import { v4 as uuid } from "uuid";
 import { useElementSize, watchTriggerable } from "@vueuse/core";
 import { isEqual } from "lodash-es";
@@ -24,13 +32,17 @@ const props = defineProps({
   textStyle: {
     type: Object as PropType<CSSProperties>,
   },
+  animationOptions: {
+    type: Object as PropType<Partial<Pick<KeyframeEffectOptions, "easing">>>,
+  },
 });
-const { partId, direction, digits, textStyle, duration } = toRefs(props);
+const { partId, direction, digits, textStyle, duration, animationOptions } =
+  toRefs(props);
 
 let animation: Animation | null = null;
 async function handleEnter(el: Element, done: () => void) {
+  const animationOptionsValue = toValue(animationOptions);
   try {
-    // eslint-disable-next-line no-undef
     const keyframes: PropertyIndexedKeyframes = {};
 
     switch (direction.value) {
@@ -45,6 +57,7 @@ async function handleEnter(el: Element, done: () => void) {
       duration: duration.value,
       iterations: 1,
       fill: "forwards",
+      ...animationOptionsValue,
     });
 
     await animation.finished;
@@ -63,23 +76,31 @@ const { trigger } = watchTriggerable(
   (value, oldValue) => {
     /**
      * 以下代码块用于判断是否需要启动滚动动画.
-     * 下列情况将直接显示并删除上次动画结束后保留的样式:
+     * 下列情况将跳过滚动动画:
      * 1. 当新的滚动数据(即 digits)长度为 1 时.
-     * 2. 当滚动数据头尾相同时.
-     * 3. 当前滚动数据与上一次全等时.
+     * 2. 当滚动方向未改变时:
+     *    1. 当滚动数据头尾相同时.
+     *    2. 当前滚动数据与上一次全等时.
      */
     {
-      const [, newDigits] = value;
-      const [, oldDigits] = oldValue ?? [];
+      const [newDirection, newDigits] = value;
+      const [oldDirection, oldDigits] = oldValue ?? [];
 
-      let earlyReturn = "";
-      if (newDigits.length === 1) {
-        earlyReturn = "only one digit";
-        animation?.cancel();
-      }
-      if (newDigits[0] === newDigits[newDigits.length - 1])
-        earlyReturn = "same head and tail";
-      if (isEqual(newDigits, oldDigits)) earlyReturn = "same digits";
+      const earlyReturn = (() => {
+        if (newDigits.length === 1) {
+          animation?.cancel();
+          return "only one digit";
+        }
+
+        if (newDirection !== oldDirection) return "";
+
+        if (newDigits[0] === newDigits[newDigits.length - 1]) {
+          animation?.cancel();
+          return "same head and tail";
+        }
+
+        if (isEqual(newDigits, oldDigits)) return "same digits";
+      })();
 
       if (earlyReturn) {
         // animation?.cancel();
