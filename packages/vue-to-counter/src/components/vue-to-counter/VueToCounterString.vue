@@ -5,7 +5,6 @@ import {
   VueToCounterStringPropsDefault,
 } from "./types.ts";
 import VueToCounter from "./VueToCounter.vue";
-import { replace } from "lodash-es";
 
 /**
  * 替换一些特定的字符.
@@ -22,7 +21,7 @@ const props = withDefaults(
 
 const alphabet = ref("");
 const replacedValue = computed(() =>
-  replace(props.value, " ", REPLACED_CHARS[" "])
+  props.value.replaceAll(" ", REPLACED_CHARS[" "])
 );
 watch(
   replacedValue,
