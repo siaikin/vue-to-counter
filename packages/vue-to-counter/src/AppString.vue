@@ -1,32 +1,44 @@
 <script setup lang="ts">
 import { ref } from "vue";
+import { BuildInIntlSegmenterAdapter, DecimalJsAdapter } from "./index.ts";
+import { GroupAnimationOptions } from "./components/vue-to-counter";
 
 const debug = ref(true);
-const value = ref("Hello World");
-const duration = ref(1000);
+// const value = ref("abcdefghijklmnopqrstuvwxyz");
+const value = ref("abcdefghijklmnopqrstuvwxyz122🧑‍💻");
+const duration = ref(500);
 const color = ref(
   "linear-gradient(135deg, rgba(30,87,153,0) 0%,rgba(30,87,153,0.8) 15%,rgba(30,87,153,1) 19%,rgba(30,87,153,1) 20%,rgba(41,137,216,1) 50%,rgba(30,87,153,1) 80%,rgba(30,87,153,1) 81%,rgba(30,87,153,0.8) 85%,rgba(30,87,153,0) 100%)"
 );
 const locale = ref("zh-CN");
 const localeNumber = ref(true);
-const prefix = ref("Remaining");
-const suffix = ref("!");
 const minPlaces = ref<[number, number]>([0, 0]);
+const decimalJsAdapter = DecimalJsAdapter();
+const buildInIntlSegmenter = BuildInIntlSegmenterAdapter();
+
+const animationOptions: Partial<GroupAnimationOptions> = {
+  // delay: (testResult, data) => {
+  // console.log("delay", toRaw(testResult), toRaw(data));
+  // return 0;
+  // },
+};
 </script>
 
 <template>
   <div class="w-full mt-16 flex flex-col justify-center items-center">
     <VueToCounterString
-      class="text-2xl bg-gray-300"
+      class="text-2xl font-mono bg-gray-300"
       :value="value"
       :duration="duration"
       :debug="debug"
       :color="color"
       :locale="locale"
       :min-places="minPlaces"
+      :number-adapter="decimalJsAdapter"
+      :string-adapter="buildInIntlSegmenter"
+      :part-data-options="{ sampleCount: 4 }"
+      :animation-options="animationOptions"
     >
-      <template #prefix>{{ prefix }}</template>
-      <template #suffix>{{ suffix }}</template>
     </VueToCounterString>
 
     <div class="flex flex-col mt-4 border w-96 p-2">
@@ -38,7 +50,7 @@ const minPlaces = ref<[number, number]>([0, 0]);
         <legend>datetime</legend>
         <label class="border-b p-1">
           value:
-          <input type="text" v-model="value" />
+          <textarea type="text" v-model="value" />
         </label>
         <label class="p-1">
           duration:
@@ -58,17 +70,6 @@ const minPlaces = ref<[number, number]>([0, 0]);
         >
           Gradient Generator
         </a>
-      </fieldset>
-      <fieldset class="flex flex-col border">
-        <legend>slot</legend>
-        <label class="border-b p-1">
-          prefix:
-          <input type="text" v-model="prefix" />
-        </label>
-        <label class="p-1">
-          suffix:
-          <input type="text" v-model="suffix" />
-        </label>
       </fieldset>
       <fieldset class="flex flex-col border">
         <legend>locale</legend>

@@ -1,5 +1,5 @@
-import App from "./App.vue";
-// import App from "./AppString.vue";
+// import App from "./App.vue";
+import App from "./AppString.vue";
 // import App from "./AppDatetimeDuration.vue";
 // import App from "./AppNumber.vue";
 import VueToCounter from "./index.ts";

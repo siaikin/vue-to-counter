@@ -1,12 +1,27 @@
 /**
  * @license https://github.com/HarasimowiczKamil/any-base
  */
+import { StringAdapter } from "../../../string-adapter";
+import { isEqual } from "lodash-es";
 
-export function anyBase(srcAlphabet: string, dstAlphabet: string) {
-  return (number: string) => convert(srcAlphabet, dstAlphabet, number);
+export function anyBase(
+  sa: StringAdapter,
+  srcAlphabet: string,
+  dstAlphabet: string
+) {
+  return (number: string) =>
+    convert(
+      sa.stringToChars(srcAlphabet),
+      sa.stringToChars(dstAlphabet),
+      sa.stringToChars(number)
+    );
 }
 
-function convert(srcAlphabet: string, dstAlphabet: string, number: string) {
+function convert(
+  srcAlphabet: string[],
+  dstAlphabet: string[],
+  number: string[]
+) {
   let i, divide, newLen;
   let length = number.length;
   const numberMap: Record<string, number> = {};
@@ -20,8 +35,8 @@ function convert(srcAlphabet: string, dstAlphabet: string, number: string) {
     );
   }
 
-  if (srcAlphabet === dstAlphabet) {
-    return number;
+  if (isEqual(srcAlphabet, dstAlphabet)) {
+    return number.join("");
   }
 
   for (i = 0; i < length; i++) {
@@ -46,10 +61,9 @@ function convert(srcAlphabet: string, dstAlphabet: string, number: string) {
   return result.reverse().join("");
 }
 
-function isValid(number: string, alphabet: string) {
-  let i = 0;
-  for (; i < number.length; ++i) {
-    if (alphabet.indexOf(number[i]) === -1) {
+function isValid(number: string[], alphabet: string[]) {
+  for (const char of number) {
+    if (alphabet.indexOf(char) === -1) {
       return false;
     }
   }

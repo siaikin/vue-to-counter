@@ -5,14 +5,22 @@ import CounterRoller from "./CounterRoller.vue";
 import { useDirection } from "./composables/use-direction.ts";
 import { usePartData } from "./composables/use-part-data.ts";
 import { anyBase } from "./utils/any-base.ts";
-import { clone, isArray, isEqual, isNumber } from "lodash-es";
+import { clone, isArray, isEqual, isNumber, isString } from "lodash-es";
 import { toRefs, watchWithFilter } from "@vueuse/core";
 
 const props = withDefaults(
   defineProps<VueToCounterProps>(),
   VueToCounterPropsDefault
 );
-const { duration, color, minPlaces, partDataOptions, tag } = toRefs(props);
+const {
+  duration,
+  color,
+  minPlaces,
+  partDataOptions,
+  tag,
+  numberAdapter,
+  stringAdapter,
+} = toRefs(props);
 
 const value = ref(clone(props.value));
 watchWithFilter(
@@ -53,8 +61,12 @@ const alphabet = computed(() =>
   props.alphabet ? props.alphabet : Object.keys(digitToChar.value).join("")
 );
 
-const decimalToAnyBase = computed(() => anyBase("0123456789", alphabet.value));
-const anyBaseToDecimal = computed(() => anyBase(alphabet.value, "0123456789"));
+const decimalToAnyBase = computed(() =>
+  anyBase(stringAdapter.value, "0123456789", alphabet.value)
+);
+const anyBaseToDecimal = computed(() =>
+  anyBase(stringAdapter.value, alphabet.value, "0123456789")
+);
 watch(
   value,
   (value, oldValue) => {
@@ -69,33 +81,40 @@ watch(
   },
   { immediate: true }
 );
-function toNumber(value: string | number | number[]) {
-  return isNumber(value)
-    ? value
-    : Number.parseInt(
-        anyBaseToDecimal.value(
-          isArray(value)
-            ? value.map((codePoint) => toChar(codePoint)).join("")
-            : value
-        )
-      );
+function toNumber(value: string | number | number[] | bigint) {
+  if (isArray(value))
+    value = value.map((codePoint) => toChar(codePoint)).join("");
+  else if (!isString(value)) value = value.toString(10);
+
+  return numberAdapter.value.create(anyBaseToDecimal.value(value));
 }
 function toChar(value: number) {
   return String.fromCodePoint(value + 48);
 }
 
-const direction = useDirection(valueDifferences);
+const direction = useDirection(numberAdapter, valueDifferences);
 
 const durationPartData = usePartData({
   value: valueDifferences,
+  numberAdapter,
+  stringAdapter,
   sampleSplit: (samples) => [samples.slice()],
-  sampleToString: (value) =>
-    needToConvert.value
-      ? decimalToAnyBase.value(value.toString(10))
-      : value.toString(10),
   minPlaces,
   digitToChar,
   ...toRefs(partDataOptions),
+  sampleToString: (value) => {
+    if (needToConvert.value) {
+      if (partDataOptions.value?.sampleToString) {
+        return decimalToAnyBase.value(
+          partDataOptions.value?.sampleToString(value)
+        );
+      } else {
+        return decimalToAnyBase.value(value.toString(10));
+      }
+    } else {
+      return value.toString(10);
+    }
+  },
 });
 
 const backgroundClippedPartContainer = ref<HTMLSpanElement>();

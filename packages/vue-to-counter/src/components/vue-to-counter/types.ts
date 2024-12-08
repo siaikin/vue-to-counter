@@ -1,4 +1,7 @@
 import { PartDataOptions } from "./composables/use-part-data.ts";
+import { NumberAdapter, BuildInNumberAdapter } from "../../number-adapter";
+import { RollerPartTestResult } from "./composables/use-roller-part-test.ts";
+import { BuildInStringAdapter, StringAdapter } from "../../string-adapter";
 
 export interface VueToCounterBaseProps<V> {
   value: V;
@@ -41,7 +44,28 @@ export interface VueToCounterBaseProps<V> {
   /**
    * 动画选项. 目前仅支持 `easing`.
    */
-  animationOptions?: Partial<Pick<KeyframeEffectOptions, "easing">>;
+  animationOptions?: Partial<GroupAnimationOptions>;
+  /**
+   * @see {@link NumberAdapter}
+   *
+   * @default {@Link BuildInNumberAdapter}
+   */
+  numberAdapter?: NumberAdapter;
+  /**
+   * @see {@link StringAdapter}
+   *
+   * @default {@Link BuildInStringAdapter}
+   */
+  stringAdapter?: StringAdapter;
+  /**
+   * @see {@link usePartData}
+   */
+  partDataOptions?: Partial<
+    Pick<
+      PartDataOptions<NumberAdapter>,
+      "decimalSeparator" | "sampleCount" | "sampleSplit" | "sampleToString"
+    >
+  >;
   /**
    * 调试模式下将:
    * 1. 不再隐藏溢出的数字. overflow: hidden; -> overflow: visible;
@@ -55,6 +79,9 @@ export const VueToCounterBasePropsDefault = {
   locale: "en-US",
   color: "white",
   digitToChar: () => ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"],
+  numberAdapter: () => BuildInNumberAdapter(),
+  stringAdapter: () => BuildInStringAdapter(),
+  partDataOptions: () => ({}),
 } as const;
 
 export interface VueToCounterDatetimeProps
@@ -98,12 +125,10 @@ export const VueToCounterNumberPropsDefault = {
   ...VueToCounterBasePropsDefault,
 } as const;
 
-export interface VueToCounterStringProps extends VueToCounterBaseProps<string> {
-  chars?: string;
-}
+export type VueToCounterStringProps = VueToCounterBaseProps<string>;
 export const VueToCounterStringPropsDefault = {
   ...VueToCounterBasePropsDefault,
-  chars: "",
+  digitToChar: undefined,
 } as const;
 
 export interface VueToCounterProps
@@ -115,8 +140,9 @@ export interface VueToCounterProps
      *    例: "Hello" -> ["H", "e", "l", "o"] 得到一个四进制映射数组. "Hello" 可以转换为四进制数, 进而转换为十进制数.
      * 3. {@link number[]} 表示一个整数数组. 这是 {@link string} 的变体, 数字数组的每一项表示一个代码点,
      *    内部通过 {@link String.fromCodePoint} 将其转换为字符串, 然后按照 {@link string} 的规则进行插值.
+     * 4. {@link bigint} 表示一个大整数. 内部直接根据数字进行插值.
      */
-    number | number[] | string
+    number | number[] | string | bigint
   > {
   /**
    * 自定义字符集, 传入的 {@link value} 的字符串表示形式的每个字符都必须被包含在该字符集中.
@@ -124,18 +150,11 @@ export interface VueToCounterProps
    * @default 从 {@link digitToChar} 中获取.
    */
   alphabet?: string;
-  partDataOptions?: Partial<
-    Pick<
-      PartDataOptions,
-      "decimalSeparator" | "sampleCount" | "sampleSplit" | "sampleToString"
-    >
-  >;
   tag?: string;
 }
 export const VueToCounterPropsDefault = {
   ...VueToCounterBasePropsDefault,
   tag: "span",
-  partDataOptions: () => ({}),
 } as const;
 
 export interface PartData {
@@ -147,15 +166,26 @@ export interface PartData {
    *   ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"], // 第二个数位
    * ]
    */
-  digits: string[][];
+  digits: PartDataDigit[];
   /**
    * 运动方向的头部数字. 向下运动时该值为数组的最后一个元素. 向上运动时该值为数组的第一个元素.
+   * @deprecated
    */
-  headNumber: number;
+  headNumber?: number;
   /**
    * 运动方向的尾部数字.
+   @deprecated
    */
-  tailNumber: number;
+  tailNumber?: number;
+}
+
+export interface PartDataDigit {
+  data: string[];
+  /**
+   * 这是数字的第几位
+   * @example 1024 -> 4 是第 1 位, 2 是第 2 位, 0 是第 3 位, 1 是第 4 位
+   */
+  place: number;
 }
 
 export enum DurationPartType {
@@ -193,3 +223,27 @@ export const DurationPartMillisecondToType = {
   7889400000: DurationPartType.Quarter,
   31557600000: DurationPartType.Year,
 } as const;
+
+/**
+ * 1. T: 单个数值. 为所有 part 下的 digit 使用 T.
+ * 2. T[]: 数组数值. 为第 `i` 个 part 下的所有 digit 使用 `T[i]` 值.
+ * 3. T[][]: 二维数组数值. 为第 `i` 个 part 下的第 `j` 个 digit 使用 `T[i][j]` 值.
+ * 4. (data: PartData[]) => T | T[] | T[][]: 同上
+ */
+type GroupValueOrGetter<T> =
+  | T
+  | T[]
+  | T[][]
+  | ((
+      testResult: RollerPartTestResult[][],
+      data: PartData[]
+    ) => T | T[] | T[][]);
+
+export interface GroupAnimationOptions {
+  easing: GroupValueOrGetter<AnimationOptions["easing"]>;
+  delay: GroupValueOrGetter<AnimationOptions["delay"]>;
+}
+export interface AnimationOptions {
+  easing: Required<KeyframeEffectOptions["easing"]>;
+  delay: Required<KeyframeEffectOptions["delay"]>;
+}

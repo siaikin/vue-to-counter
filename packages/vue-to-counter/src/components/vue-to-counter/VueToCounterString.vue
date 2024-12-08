@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { defineProps, computed, withDefaults, ref, watch } from "vue";
+import { defineProps, computed, withDefaults, ref, watch, toRefs } from "vue";
 import {
+  VueToCounterProps,
   VueToCounterStringProps,
   VueToCounterStringPropsDefault,
 } from "./types.ts";
@@ -18,16 +19,19 @@ const props = withDefaults(
   defineProps<VueToCounterStringProps>(),
   VueToCounterStringPropsDefault
 );
+const { numberAdapter, stringAdapter } = toRefs(props);
 
 const alphabet = ref("");
 const replacedValue = computed(() =>
   props.value.replaceAll(" ", REPLACED_CHARS[" "])
 );
 watch(
-  replacedValue,
-  (value, oldValue) => {
+  [replacedValue, stringAdapter],
+  ([value, stringAdapterValue], [oldValue]) => {
     const charSet = new Set(
-      (oldValue ?? "").split("").concat((value ?? "").split(""))
+      stringAdapterValue
+        .stringToChars(oldValue ?? "")
+        .concat(stringAdapterValue.stringToChars(value ?? ""))
     );
     alphabet.value = [" "].concat(Array.from(charSet)).join("");
   },
@@ -35,8 +39,13 @@ watch(
 );
 
 const digitToChar = computed(() => ({
-  0: REPLACED_CHARS[" "],
+  " ": REPLACED_CHARS[" "],
   ...props.digitToChar,
+}));
+
+const partDataOptions = computed<VueToCounterProps["partDataOptions"]>(() => ({
+  ...props.partDataOptions,
+  sampleToString: (value) => numberAdapter.value.toString(value),
 }));
 </script>
 
@@ -46,6 +55,7 @@ const digitToChar = computed(() => ({
     :value="replacedValue"
     :alphabet="alphabet"
     :digit-to-char="digitToChar"
+    :part-data-options="partDataOptions"
   >
     <template #prefix>
       <slot name="prefix" />

@@ -33,6 +33,7 @@ const localDecimalSeparator = computed(
 );
 
 const partDataOptions = computed<VueToCounterProps["partDataOptions"]>(() => ({
+  ...props.partDataOptions,
   decimalSeparator: localDecimalSeparator.value,
   sampleToString: (value) =>
     useLocalizedNumber.value

@@ -10,11 +10,16 @@ import {
 } from "vue";
 import { v4 as uuid } from "uuid";
 import { useElementSize, watchTriggerable } from "@vueuse/core";
-import { isEqual } from "lodash-es";
+import { AnimationOptions, PartDataDigit } from "./types.ts";
+import { RollerPartTestResult } from "./composables/use-roller-part-test.ts";
 
 const props = defineProps({
   partId: {
     type: String,
+    required: true,
+  },
+  testResult: {
+    type: Object as PropType<RollerPartTestResult>,
     required: true,
   },
   duration: {
@@ -26,22 +31,31 @@ const props = defineProps({
     default: "down",
   },
   digits: {
-    type: Array as PropType<string[]>,
-    default: () => [],
+    type: Object as PropType<PartDataDigit>,
+    required: true,
   },
   textStyle: {
     type: Object as PropType<CSSProperties>,
   },
   animationOptions: {
-    type: Object as PropType<Partial<Pick<KeyframeEffectOptions, "easing">>>,
+    type: Object as PropType<Partial<AnimationOptions>>,
   },
 });
-const { partId, direction, digits, textStyle, duration, animationOptions } =
-  toRefs(props);
+const {
+  partId,
+  testResult,
+  direction,
+  digits,
+  textStyle,
+  duration,
+  animationOptions,
+} = toRefs(props);
+
+const rollDigitList = computed(() => digits.value.data);
 
 let animation: Animation | null = null;
 async function handleEnter(el: Element, done: () => void) {
-  const animationOptionsValue = toValue(animationOptions);
+  const { delay = 0, easing } = toValue(animationOptions) ?? {};
   try {
     const keyframes: PropertyIndexedKeyframes = {};
 
@@ -57,7 +71,8 @@ async function handleEnter(el: Element, done: () => void) {
       duration: duration.value,
       iterations: 1,
       fill: "forwards",
-      ...animationOptionsValue,
+      delay,
+      easing,
     });
 
     await animation.finished;
@@ -72,41 +87,18 @@ function handleAfterEnter() {}
 
 const transitionKey = ref(uuid());
 const { trigger } = watchTriggerable(
-  () => [direction.value, digits.value, duration.value, partId.value] as const,
-  (value, oldValue) => {
-    /**
-     * 以下代码块用于判断是否需要启动滚动动画.
-     * 下列情况将跳过滚动动画:
-     * 1. 当新的滚动数据(即 digits)长度为 1 时.
-     * 2. 当滚动方向未改变时:
-     *    1. 当滚动数据头尾相同时.
-     *    2. 当前滚动数据与上一次全等时.
-     */
-    {
-      const [newDirection, newDigits] = value;
-      const [oldDirection, oldDigits] = oldValue ?? [];
-
-      const earlyReturn = (() => {
-        if (newDigits.length === 1) {
-          animation?.cancel();
-          return "only one digit";
-        }
-
-        if (newDirection !== oldDirection) return "";
-
-        if (newDigits[0] === newDigits[newDigits.length - 1]) {
-          animation?.cancel();
-          return "same head and tail";
-        }
-
-        if (isEqual(newDigits, oldDigits)) return "same digits";
-      })();
-
-      if (earlyReturn) {
-        // animation?.cancel();
-        return;
-      }
-    }
+  () =>
+    [
+      testResult.value,
+      direction.value,
+      digits.value,
+      duration.value,
+      partId.value,
+    ] as const,
+  (value) => {
+    const [testResultValue] = value;
+    if (testResultValue.cancelPrevAnimation) animation?.cancel();
+    if (!testResultValue.animate) return;
 
     transitionKey.value = uuid();
   }
@@ -126,7 +118,7 @@ const placeholderWidth = computed(() => `${Math.round(width.value)}px`);
       ref="rollDigitListRef"
       class="absolute -z-10 invisible inline-flex flex-col text-nowrap"
     >
-      <span v-for="(digit, digitIndex) in digits" :key="digitIndex">
+      <span v-for="(digit, digitIndex) in rollDigitList" :key="digitIndex">
         {{ digit }}
       </span>
     </span>
@@ -143,10 +135,15 @@ const placeholderWidth = computed(() => `${Math.round(width.value)}px`);
           'bottom-0': direction === 'down',
         }"
       >
-        <template v-if="digits.length > 1">
-          <template v-for="(digit, digitIndex) in digits" :key="digitIndex">
+        <template v-if="rollDigitList.length > 1">
+          <template
+            v-for="(digit, digitIndex) in rollDigitList"
+            :key="digitIndex"
+          >
             <span
-              v-if="direction === 'up' && digitIndex === digits.length - 1"
+              v-if="
+                direction === 'up' && digitIndex === rollDigitList.length - 1
+              "
               class="absolute top-full"
               :style="textStyle"
             >
@@ -166,7 +163,7 @@ const placeholderWidth = computed(() => `${Math.round(width.value)}px`);
         </template>
         <template v-else>
           <span class="inline-block" :style="textStyle">
-            {{ digits[0] }}
+            {{ rollDigitList[0] }}
           </span>
         </template>
       </span>

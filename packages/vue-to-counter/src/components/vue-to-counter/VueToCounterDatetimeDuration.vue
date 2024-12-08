@@ -64,6 +64,7 @@ const availableDurationPartTypes = computed(() =>
 );
 
 const partDataOptions = computed<VueToCounterProps["partDataOptions"]>(() => ({
+  ...props.partDataOptions,
   sampleSplit: (samples) => {
     const toTimeValue = toValue(to).getDate();
     const availableDurationPartTypesValue = toValue(availableDurationPartTypes);
@@ -121,69 +122,6 @@ const datetimeAttribute = computed(() => {
       </span>
     </template>
   </VueToCounter>
-
-  <!--  <time-->
-  <!--    ref="backgroundClippedPartContainer"-->
-  <!--    class="counter-mask"-->
-  <!--    :datetime="datetimeAttribute"-->
-  <!--    :class="{-->
-  <!--      debug: debug,-->
-  <!--    }"-->
-  <!--  >-->
-  <!--    <CounterRoller-->
-  <!--      :container="backgroundClippedPartContainer"-->
-  <!--      :data="durationPartData"-->
-  <!--      :duration="duration"-->
-  <!--      :color="color"-->
-  <!--      :direction="direction"-->
-  <!--    >-->
-  <!--      <template #prefix>-->
-  <!--        <slot name="prefix" />-->
-  <!--      </template>-->
-  <!--      <template #suffix>-->
-  <!--        <slot name="suffix" />-->
-  <!--      </template>-->
-  <!--      <template #partSuffix="{ index }">-->
-  <!--        <span :style="{ fontSize: '0.4em' }">-->
-  <!--          {{ dateTimeFieldLabels[availableDurationPartTypes[index]] }}-->
-  <!--        </span>-->
-  <!--      </template>-->
-  <!--    </CounterRoller>-->
-  <!--  </time>-->
 </template>
 
-<style lang="scss" scoped>
-.counter-mask {
-  //mask: linear-gradient(
-  //    to bottom,
-  //    transparent,
-  //    black 16px calc(100% - 16px),
-  //    transparent
-  //  ),
-  //  linear-gradient(
-  //    to right,
-  //    transparent,
-  //    black 16px calc(100% - 16px),
-  //    transparent
-  //  );
-  //mask-composite: intersect;
-
-  @apply inline-block relative overflow-hidden;
-}
-
-.debug {
-  &.counter-mask {
-    @apply overflow-visible;
-  }
-}
-
-.time-mask {
-  mask-image: linear-gradient(
-    to bottom,
-    transparent,
-    black 10%,
-    black 90%,
-    transparent
-  );
-}
-</style>
+<style lang="scss" scoped></style>

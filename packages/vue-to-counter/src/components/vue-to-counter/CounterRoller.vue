@@ -8,10 +8,12 @@ import {
   useSlots,
   watchEffect,
 } from "vue";
-import { PartData } from "./types.ts";
+import { GroupAnimationOptions, PartData } from "./types.ts";
 import { useResizeObserver } from "@vueuse/core";
 import CounterRollerPart from "./CounterRollerPart.vue";
 import { debounce, isArray } from "lodash-es";
+import { useRollerPartTest } from "./composables/use-roller-part-test.ts";
+import { useAnimationOptions } from "./composables/use-animation-options.ts";
 
 const props = defineProps({
   container: {
@@ -34,17 +36,17 @@ const props = defineProps({
     required: true,
   },
   animationOptions: {
-     
-    type: Object as PropType<Partial<Pick<KeyframeEffectOptions, "easing">>>,
+    type: Object as PropType<Partial<GroupAnimationOptions>>,
+    default: () => ({}),
   },
 });
-const { data, color, container } = toRefs(props);
+const { data, color, container, animationOptions, direction } = toRefs(props);
 
 const containerRect = ref<DOMRect>();
 const updateContainerRect = debounce(
   () => (containerRect.value = container?.value?.getBoundingClientRect()),
   0,
-  // 增加防抖间隔有助于提升性能, 但频繁变化位数时动画会产生抖动.
+  // ~~增加防抖间隔有助于提升性能, 但频繁变化位数时动画会产生抖动.~~
   // 250,
   { leading: true }
 );
@@ -125,6 +127,13 @@ watchEffect(() => {
 });
 
 const slots = useSlots();
+
+const { testResult } = useRollerPartTest(data, direction);
+const { animationOptions: rollerPartAnimationOptions } = useAnimationOptions(
+  testResult,
+  data,
+  animationOptions
+);
 </script>
 
 <script lang="ts">
@@ -162,8 +171,8 @@ export default {
         "
         :direction="direction"
         :digits="digit"
-        :title="`${partData.tailNumber}`"
-        :animation-options="animationOptions"
+        :test-result="testResult[partIndex][digitIndex]"
+        :animation-options="rollerPartAnimationOptions[partIndex][digitIndex]"
       />
     </span>
     <span
