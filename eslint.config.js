@@ -15,7 +15,14 @@ export default [
   ...pluginVue.configs["flat/essential"],
   {
     files: ["**/*.vue"],
-    languageOptions: { parserOptions: { parser: tseslint.parser } },
+    languageOptions: {
+      parserOptions: {
+        parser: tseslint.parser,
+        ecmaFeatures: {
+          jsx: true,
+        },
+      },
+    },
   },
   eslintConfigPrettier,
   /**

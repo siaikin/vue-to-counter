@@ -135,15 +135,15 @@ const backgroundClippedPartContainer = ref<HTMLSpanElement>();
       :direction="direction"
       :animation-options="animationOptions"
     >
-      <!--      <template #prefix>-->
-      <!--        <slot name="prefix" />-->
-      <!--      </template>-->
-      <!--      <template #suffix>-->
-      <!--        <slot name="suffix" />-->
-      <!--      </template>-->
-      <!--      <template #partSuffix="props">-->
-      <!--        <slot name="partSuffix" v-bind="props" />-->
-      <!--      </template>-->
+      <template #prefix>
+        <slot name="prefix" />
+      </template>
+      <template #suffix>
+        <slot name="suffix" />
+      </template>
+      <template #partSuffix="props">
+        <slot name="partSuffix" v-bind="props" />
+      </template>
     </CounterRoller>
   </component>
 </template>
