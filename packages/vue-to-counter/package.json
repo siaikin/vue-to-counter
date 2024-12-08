@@ -1,7 +1,7 @@
 {
   "name": "vue-to-counter",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
   "module": "dist/index.js",
   "main": "dist/index.cjs",
@@ -15,7 +15,7 @@
     "docs:dev": "vitepress dev",
     "docs:build": "vitepress build",
     "docs:preview": "vitepress preview",
-    "prepublishOnly": "run-s build"
+    "prepublishOnly": "npm run build"
   },
   "files": [
     "dist",
