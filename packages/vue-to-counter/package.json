@@ -5,12 +5,11 @@
   "type": "module",
   "module": "dist/index.js",
   "main": "dist/index.cjs",
-  "types": "dist/types/main.d.ts",
+  "types": "dist/types/index.d.ts",
   "scripts": {
     "dev": "vite",
-    "build": "vite build && npm run type-gen",
+    "build": "vite build",
     "type-check": "vue-tsc -b",
-    "type-gen": "vue-tsc --declaration --emitDeclarationOnly --declarationDir dist/types -p tsconfig.app.json --noEmit false",
     "preview": "vite preview",
     "prepare": "husky install",
     "docs:dev": "vitepress dev",
@@ -29,11 +28,12 @@
     "date-fns": "^4.1.0",
     "lodash-es": "^4.17.21",
     "uuid": "^11.0.3",
+    "vite-plugin-dts": "^4.3.0",
     "vue": "^3.5.12"
   },
   "optionalDependencies": {
-    "grapheme-splitter": "^1.0.4",
-    "decimal.js": "^10.4.3"
+    "decimal.js": "^10.4.3",
+    "grapheme-splitter": "^1.0.4"
   },
   "devDependencies": {
     "@types/d3-array": "^3.2.1",
@@ -46,9 +46,9 @@
     "prettier": "3.3.3",
     "sass-embedded": "^1.81.0",
     "tailwindcss": "^3.4.15",
-    "typescript": "~5.6.2",
+    "typescript": "~5.5.4",
     "vite": "^5.4.10",
     "vitepress": "^1.5.0",
-    "vue-tsc": "^2.1.8"
+    "vue-tsc": "^2.0.29"
   }
 }

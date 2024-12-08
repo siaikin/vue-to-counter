@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { BuildInIntlSegmenterAdapter, DecimalJsAdapter } from "./index.ts";
-import { GroupAnimationOptions } from "./components/vue-to-counter";
+import type { GroupAnimationOptions } from "./components";
 
 const debug = ref(true);
 // const value = ref("abcdefghijklmnopqrstuvwxyz");

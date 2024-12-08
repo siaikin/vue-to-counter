@@ -3,7 +3,7 @@ export default {
   content: [
     "./index.html",
     "./**/*.{js,ts,jsx,tsx,md}",
-    ".vitepress/**/*.{js,ts,jsx,tsx,md}",
+    ".vitepress/**/*.{js,ts,jsx,tsx,md,vue}",
     "!.vitepress/cache/**/*",
   ],
   theme: {

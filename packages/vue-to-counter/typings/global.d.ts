@@ -1,6 +1,9 @@
 declare module "vue" {
   export interface GlobalComponents {
-    VueToCounterDatetime: (typeof import("vue-to-counter"))["VueToCounterDatetime"];
+    VueToCounter: (typeof import("vue-to-counter"))["VueToCounter"];
+    VueToCounterDatetimeDuration: (typeof import("vue-to-counter"))["VueToCounterDatetimeDuration"];
+    VueToCounterNumber: (typeof import("vue-to-counter"))["VueToCounterNumber"];
+    VueToCounterString: (typeof import("vue-to-counter"))["VueToCounterString"];
   }
 }
 

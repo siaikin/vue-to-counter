@@ -201,7 +201,9 @@ export default {
     增加行高避免具有下降部分的字符(如: g, j, p, q, y)的下降部分被截断
     @see https://en.wikipedia.org/wiki/Descender
     @see https://tailwindcss.com/docs/line-height
+
+    @deprecated 行高样式由外部设置, 提供更高的自由度
   */
-  @apply inline-block leading-tight;
+  //@apply inline-block leading-tight;
 }
 </style>

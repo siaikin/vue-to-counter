@@ -124,7 +124,7 @@ const backgroundClippedPartContainer = ref<HTMLSpanElement>();
   <component
     :is="tag"
     ref="backgroundClippedPartContainer"
-    class="counter-mask"
+    class="vue-to-counter"
     :class="{ debug }"
   >
     <CounterRoller
@@ -135,27 +135,29 @@ const backgroundClippedPartContainer = ref<HTMLSpanElement>();
       :direction="direction"
       :animation-options="animationOptions"
     >
-      <template #prefix>
-        <slot name="prefix" />
-      </template>
-      <template #suffix>
-        <slot name="suffix" />
-      </template>
-      <template #partSuffix="props">
-        <slot name="partSuffix" v-bind="props" />
-      </template>
+      <!--      <template #prefix>-->
+      <!--        <slot name="prefix" />-->
+      <!--      </template>-->
+      <!--      <template #suffix>-->
+      <!--        <slot name="suffix" />-->
+      <!--      </template>-->
+      <!--      <template #partSuffix="props">-->
+      <!--        <slot name="partSuffix" v-bind="props" />-->
+      <!--      </template>-->
     </CounterRoller>
   </component>
 </template>
 
 <style lang="scss" scoped>
-.counter-mask {
-  @apply inline-block relative overflow-hidden;
-}
+.vue-to-counter {
+  /**
+  inline-block 和 overflow-hidden 同时存在会使得基线为下边缘. 手动设置 align-bottom 以修正这个问题.
+  @see https://stackoverflow.com/questions/22421782/css-overflow-hidden-increases-height-of-container
+   */
+  @apply inline-block relative overflow-hidden align-bottom;
 
-.debug {
-  &.counter-mask {
-    @apply overflow-visible;
+  &.debug {
+    @apply overflow-visible align-baseline;
   }
 }
 </style>
