@@ -1,4 +1,4 @@
-import { StringAdapter } from "./types.ts";
+import { StringAdapter } from "./types";
 import GraphemeSplitter from "grapheme-splitter";
 
 /**

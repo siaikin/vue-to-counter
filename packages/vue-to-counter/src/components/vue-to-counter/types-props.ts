@@ -1,8 +1,8 @@
-import { PartDataOptions } from "./composables/use-part-data.ts";
+import { PartDataOptions } from "./composables/use-part-data";
 import { NumberAdapter, BuildInNumberAdapter } from "../../number-adapter";
-import { RollerPartTestResult } from "./composables/use-roller-part-test.ts";
+import { RollerPartTestResult } from "./composables/use-roller-part-test";
 import { BuildInStringAdapter, StringAdapter } from "../../string-adapter";
-import { PropType } from "vue";
+import { PropType, SlotsType } from "vue";
 
 export const VueToCounterBaseProps = () =>
   ({
@@ -72,6 +72,7 @@ export const VueToCounterBaseProps = () =>
      */
     numberAdapter: {
       type: Object as PropType<NumberAdapter>,
+      required: true,
       default: () => BuildInNumberAdapter(),
     },
     /**
@@ -81,13 +82,25 @@ export const VueToCounterBaseProps = () =>
      */
     stringAdapter: {
       type: Object as PropType<StringAdapter>,
+      required: true,
       default: () => BuildInStringAdapter(),
     },
     /**
      * @see {@link usePartData}
      */
     partDataOptions: {
-      type: Object as PropType<Partial<PartDataOptions<NumberAdapter>>>,
+      type: Object as PropType<
+        Partial<
+          Pick<
+            PartDataOptions,
+            | "sampleToString"
+            | "sampleCount"
+            | "sampleSplit"
+            | "decimalSeparator"
+          >
+        >
+      >,
+      default: () => ({}),
     },
     /**
      * 调试模式下将:
@@ -100,6 +113,12 @@ export const VueToCounterBaseProps = () =>
       default: false,
     },
   }) as const;
+export const VueToCounterBaseSlots = {} as SlotsType<{
+  default: void;
+  prefix: void;
+  partSuffix: { partData: PartData; index: number };
+  suffix: void;
+}>;
 
 export const VueToCounterDatetimeProps = () =>
   ({
@@ -127,20 +146,12 @@ export const VueToCounterDatetimeProps = () =>
     },
   }) as const;
 
-export const VueToCounterDatetimeDuration = () =>
+export const VueToCounterDatetimeDurationProps = () =>
   ({
+    ...VueToCounterDatetimeProps(),
     value: {
-      type: [Date, Number, String] as PropType<Date | number | string>,
+      type: Array as PropType<(Date | number | string)[]>,
       required: true,
-    },
-    ...VueToCounterBaseProps(),
-    /**
-     * 同 {@link VueToCounterDatetimeProps.precision}.
-     */
-    precision: {
-      type: [String, Array] as PropType<
-        DurationPartType | [DurationPartType, DurationPartType]
-      >,
     },
   }) as const;
 

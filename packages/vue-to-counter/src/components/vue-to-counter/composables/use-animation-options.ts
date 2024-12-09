@@ -1,7 +1,7 @@
 import { MaybeRefOrGetter, ref, toValue, watch } from "vue";
-import { AnimationOptions, GroupAnimationOptions, PartData } from "../types.ts";
+import { AnimationOptions, GroupAnimationOptions, PartData } from "../types";
 import { isArray, isFunction } from "lodash-es";
-import { RollerPartTestResult } from "./use-roller-part-test.ts";
+import { RollerPartTestResult } from "./use-roller-part-test";
 
 const animationOptionsKeys: (keyof GroupAnimationOptions)[] = [
   "easing",

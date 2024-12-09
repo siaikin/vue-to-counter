@@ -1,4 +1,4 @@
-import { StringAdapter } from "./types.ts";
+import { StringAdapter } from "./types";
 
 /**
  * 使用内置的 `Intl.Segmenter` 将字符串转换为字符数组.

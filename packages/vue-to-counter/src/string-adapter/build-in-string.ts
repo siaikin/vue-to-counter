@@ -1,4 +1,4 @@
-import { StringAdapter } from "./types.ts";
+import { StringAdapter } from "./types";
 
 /**
  * 默认的字符串适配器. 该适配器使用内置的 `Array.from` 方法将字符串转换为字符数组.

@@ -1,4 +1,3 @@
-<script lang="tsx">
 import {
   h,
   defineComponent,
@@ -9,15 +8,19 @@ import {
   normalizeClass,
 } from "vue";
 import CounterRoller from "./CounterRoller.vue";
-import { useDirection } from "./composables/use-direction.ts";
-import { usePartData } from "./composables/use-part-data.ts";
-import { anyBase } from "./utils/any-base.ts";
+import { useDirection } from "./composables/use-direction";
+import { usePartData } from "./composables/use-part-data";
+import { anyBase } from "./utils/any-base";
 import { clone, isArray, isEqual, isNumber, isString } from "lodash-es";
 import { toRefs, watchWithFilter } from "@vueuse/core";
-import { VueToCounterProps } from "./types-props.ts";
+import { VueToCounterBaseSlots, VueToCounterProps } from "./types-props";
+
+import "./VueToCounter.scss";
 
 export default defineComponent({
+  name: "VueToCounter",
   props: VueToCounterProps(),
+  slots: VueToCounterBaseSlots,
   setup: (props, { attrs, slots }) => {
     const {
       duration,
@@ -60,7 +63,11 @@ export default defineComponent({
       }
     });
 
-    const valueDifferences = ref<[number, number]>([0, 0]);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const valueDifferences = ref<[any, any]>([
+      numberAdapter.value.create(0),
+      numberAdapter.value.create(0),
+    ]);
     /**
      *
      */
@@ -144,8 +151,8 @@ export default defineComponent({
         },
         [
           <CounterRoller
-            container={backgroundClippedPartContainer}
-            data={durationPartData}
+            container={backgroundClippedPartContainer.value}
+            data={durationPartData.value}
             duration={duration.value}
             color={color.value}
             direction={direction.value}
@@ -157,18 +164,3 @@ export default defineComponent({
       );
   },
 });
-</script>
-
-<style lang="scss" scoped>
-.vue-to-counter {
-  /**
-  inline-block 和 overflow-hidden 同时存在会使得基线为下边缘. 手动设置 align-bottom 以修正这个问题.
-  @see https://stackoverflow.com/questions/22421782/css-overflow-hidden-increases-height-of-container
-   */
-  @apply inline-block relative overflow-hidden align-bottom;
-
-  &.debug {
-    @apply overflow-visible align-baseline;
-  }
-}
-</style>

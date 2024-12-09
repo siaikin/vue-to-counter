@@ -1,5 +1,5 @@
 import { MaybeRefOrGetter, ref, toValue, watch } from "vue";
-import { PartData, PartDataDigit } from "../types.ts";
+import { PartData, PartDataDigit } from "../types";
 import { isEqual } from "lodash-es";
 
 export interface RollerPartTestResult {

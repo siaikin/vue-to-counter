@@ -8,12 +8,12 @@ import {
   useSlots,
   watchEffect,
 } from "vue";
-import { GroupAnimationOptions, PartData } from "./types.ts";
+import { GroupAnimationOptions, PartData } from "./types";
 import { useResizeObserver } from "@vueuse/core";
 import CounterRollerPart from "./CounterRollerPart.vue";
 import { debounce, isArray } from "lodash-es";
-import { useRollerPartTest } from "./composables/use-roller-part-test.ts";
-import { useAnimationOptions } from "./composables/use-animation-options.ts";
+import { useRollerPartTest } from "./composables/use-roller-part-test";
+import { useAnimationOptions } from "./composables/use-animation-options";
 
 const props = defineProps({
   container: {

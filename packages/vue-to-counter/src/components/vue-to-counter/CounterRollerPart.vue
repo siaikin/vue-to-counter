@@ -10,8 +10,8 @@ import {
 } from "vue";
 import { v4 as uuid } from "uuid";
 import { useElementSize, watchTriggerable } from "@vueuse/core";
-import { AnimationOptions, PartDataDigit } from "./types.ts";
-import { RollerPartTestResult } from "./composables/use-roller-part-test.ts";
+import { AnimationOptions, PartDataDigit } from "./types";
+import { RollerPartTestResult } from "./composables/use-roller-part-test";
 
 const props = defineProps({
   partId: {

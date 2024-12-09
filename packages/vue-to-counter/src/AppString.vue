@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import { BuildInIntlSegmenterAdapter, DecimalJsAdapter } from "./index.ts";
+import { BuildInIntlSegmenterAdapter, DecimalJsAdapter } from "./index";
 import type { GroupAnimationOptions } from "./components";
 
 const debug = ref(true);

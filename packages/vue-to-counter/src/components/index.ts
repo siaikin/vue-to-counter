@@ -22,5 +22,5 @@ function installToVue<T extends Component>(
   };
 }
 
-export * from "./types.ts";
+export * from "./types";
 export * from "./components";

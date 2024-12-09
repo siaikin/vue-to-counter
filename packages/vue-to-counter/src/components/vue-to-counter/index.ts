@@ -1,4 +1,4 @@
-export { default as VueToCounterDatetimeDuration } from "./VueToCounterDatetimeDuration.vue";
-export { default as VueToCounterNumber } from "./VueToCounterNumber.vue";
-export { default as VueToCounterString } from "./VueToCounterString.vue";
-export { default as VueToCounter } from "./VueToCounter1.vue";
+export { default as VueToCounterDatetimeDuration } from "./VueToCounterDatetimeDuration";
+export { default as VueToCounterNumber } from "./VueToCounterNumber";
+export { default as VueToCounterString } from "./VueToCounterString";
+export { default as VueToCounter } from "./VueToCounter";

@@ -17,7 +17,7 @@ export default defineConfig({
   build: {
     target: "modules",
     lib: {
-      entry: resolve(__dirname, "src/index.ts"),
+      entry: resolve(__dirname, "src/index"),
       fileName: "index",
       formats: ["es", "cjs"],
     },

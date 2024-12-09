@@ -1,4 +1,4 @@
-import { NumberAdapter } from "./types.ts";
+import { NumberAdapter } from "./types";
 import { Decimal } from "decimal.js";
 
 const DecimalJsAdapter: (config?: Decimal.Config) => NumberAdapter<Decimal> = (

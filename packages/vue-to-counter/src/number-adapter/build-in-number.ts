@@ -1,4 +1,4 @@
-import { NumberAdapter } from "./types.ts";
+import { NumberAdapter } from "./types";
 
 const BuildInNumberAdapter: () => NumberAdapter<number> = () => ({
   create(value: string | number | bigint): number {

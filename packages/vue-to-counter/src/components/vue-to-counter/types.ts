@@ -1,6 +1,6 @@
-import { PartDataOptions } from "./composables/use-part-data.ts";
+import { PartDataOptions } from "./composables/use-part-data";
 import { NumberAdapter, BuildInNumberAdapter } from "../../number-adapter";
-import { RollerPartTestResult } from "./composables/use-roller-part-test.ts";
+import { RollerPartTestResult } from "./composables/use-roller-part-test";
 import { BuildInStringAdapter, StringAdapter } from "../../string-adapter";
 
 export interface VueToCounterBaseProps<V> {
@@ -62,7 +62,7 @@ export interface VueToCounterBaseProps<V> {
    */
   partDataOptions?: Partial<
     Pick<
-      PartDataOptions<NumberAdapter>,
+      PartDataOptions,
       "decimalSeparator" | "sampleCount" | "sampleSplit" | "sampleToString"
     >
   >;

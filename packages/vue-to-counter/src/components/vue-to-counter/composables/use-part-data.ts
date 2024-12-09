@@ -9,12 +9,9 @@ import {
 } from "../../../number-adapter";
 import { StringAdapter } from "../../../string-adapter";
 
-export interface PartDataOptions<
-  NS extends NumberAdapter,
-  V = ExtractNumberAdapterType<NS>,
-> {
+export interface PartDataOptions<V = ExtractNumberAdapterType<NumberAdapter>> {
   value: [V, V];
-  numberAdapter: NS;
+  numberAdapter: NumberAdapter;
   stringAdapter: StringAdapter;
   sampleCount?: number;
   digitToChar?: Record<string | number, string>;
@@ -24,21 +21,19 @@ export interface PartDataOptions<
   sampleToString?: (value: V) => string;
 }
 
-interface UsePartDataOptions<NS extends NumberAdapter> {
-  value: MaybeRefOrGetter<PartDataOptions<NS>["value"]>;
-  numberAdapter: MaybeRefOrGetter<NS>;
+export interface UsePartDataOptions {
+  value: MaybeRefOrGetter<PartDataOptions["value"]>;
+  numberAdapter: MaybeRefOrGetter<NumberAdapter>;
   stringAdapter: MaybeRefOrGetter<StringAdapter>;
-  sampleCount?: MaybeRefOrGetter<PartDataOptions<NS>["sampleCount"]>;
-  digitToChar?: MaybeRefOrGetter<PartDataOptions<NS>["digitToChar"]>;
-  decimalSeparator?: MaybeRefOrGetter<PartDataOptions<NS>["decimalSeparator"]>;
-  minPlaces?: MaybeRefOrGetter<PartDataOptions<NS>["minPlaces"]>;
-  sampleSplit?: MaybeRef<PartDataOptions<NS>["sampleSplit"]>;
-  sampleToString?: MaybeRef<PartDataOptions<NS>["sampleToString"]>;
+  sampleCount?: MaybeRefOrGetter<PartDataOptions["sampleCount"]>;
+  digitToChar?: MaybeRefOrGetter<PartDataOptions["digitToChar"]>;
+  decimalSeparator?: MaybeRefOrGetter<PartDataOptions["decimalSeparator"]>;
+  minPlaces?: MaybeRefOrGetter<PartDataOptions["minPlaces"]>;
+  sampleSplit?: MaybeRef<PartDataOptions["sampleSplit"]>;
+  sampleToString?: MaybeRef<PartDataOptions["sampleToString"]>;
 }
 
-export function usePartData<NS extends NumberAdapter>(
-  options: UsePartDataOptions<NS>
-) {
+export function usePartData(options: UsePartDataOptions) {
   const {
     value,
     numberAdapter,

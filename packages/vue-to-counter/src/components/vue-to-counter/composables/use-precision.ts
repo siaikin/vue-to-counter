@@ -1,5 +1,5 @@
 import { computed, MaybeRefOrGetter, toValue } from "vue";
-import { DurationPartMillisecond, DurationPartType } from "../types.ts";
+import { DurationPartMillisecond, DurationPartType } from "../types";
 
 export function usePrecision(
   precision: MaybeRefOrGetter<
