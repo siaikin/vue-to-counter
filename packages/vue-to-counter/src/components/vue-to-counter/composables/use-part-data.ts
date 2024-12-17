@@ -1,6 +1,5 @@
-import { computed, MaybeRef, MaybeRefOrGetter, toValue, unref } from "vue";
+import { computed, MaybeRefOrGetter, toValue, unref } from "vue";
 import { PartData } from "../types";
-import { transitionDigit } from "../utils/transition-digit";
 import { zip } from "d3-array";
 import { fill } from "lodash-es";
 import {
@@ -13,52 +12,48 @@ export interface PartDataOptions<V = ExtractNumberAdapterType<NumberAdapter>> {
   value: [V, V];
   numberAdapter: NumberAdapter;
   stringAdapter: StringAdapter;
-  sampleCount?: number;
-  digitToChar?: Record<string | number, string>;
-  decimalSeparator?: string | undefined;
-  minPlaces?: [number | undefined, number | undefined] | undefined | null;
-  sampleSplit?: (samples: V[]) => V[][];
-  sampleToString?: (value: V) => string;
+  sampleCount: number;
+  digitToChar: Record<string | number, string>;
+  decimalSeparator: string;
+  minPlaces: [number | undefined, number | undefined];
+  fillChar: string;
+  sampling: (na: NumberAdapter, from: V, to: V) => V[];
+  sampleSplit: (samples: V[]) => V[][];
+  sampleToString: (value: V) => string;
 }
 
-export interface UsePartDataOptions {
-  value: MaybeRefOrGetter<PartDataOptions["value"]>;
-  numberAdapter: MaybeRefOrGetter<NumberAdapter>;
-  stringAdapter: MaybeRefOrGetter<StringAdapter>;
-  sampleCount?: MaybeRefOrGetter<PartDataOptions["sampleCount"]>;
-  digitToChar?: MaybeRefOrGetter<PartDataOptions["digitToChar"]>;
-  decimalSeparator?: MaybeRefOrGetter<PartDataOptions["decimalSeparator"]>;
-  minPlaces?: MaybeRefOrGetter<PartDataOptions["minPlaces"]>;
-  sampleSplit?: MaybeRef<PartDataOptions["sampleSplit"]>;
-  sampleToString?: MaybeRef<PartDataOptions["sampleToString"]>;
-}
+export function usePartData(
+  value: MaybeRefOrGetter<PartDataOptions["value"]>,
+  numberAdapter: MaybeRefOrGetter<PartDataOptions["numberAdapter"]>,
+  stringAdapter: MaybeRefOrGetter<PartDataOptions["stringAdapter"]>,
+  options: MaybeRefOrGetter<
+    Omit<PartDataOptions, "value" | "numberAdapter" | "stringAdapter">
+  >
+) {
+  return computed(() => {
+    const {
+      sampling,
+      sampleSplit,
+      sampleToString,
+      decimalSeparator,
+      digitToChar,
+      minPlaces,
+      fillChar,
+    } = toValue(options);
 
-export function usePartData(options: UsePartDataOptions) {
-  const {
-    value,
-    numberAdapter,
-    stringAdapter,
-    sampleCount,
-    sampleSplit,
-    sampleToString,
-    decimalSeparator,
-    digitToChar,
-    minPlaces,
-  } = options;
-
-  return computed(() =>
-    processPartData(
+    return processPartData(
       toValue(value),
       toValue(numberAdapter),
       toValue(stringAdapter),
-      toValue(sampleCount) ?? 16,
-      unref(sampleSplit) ?? ((samples) => [samples]),
-      unref(sampleToString) ?? ((value) => numberAdapter.toString(value)),
-      toValue(digitToChar) ?? {},
-      toValue(decimalSeparator) ?? ".",
-      toValue(minPlaces)
-    )
-  );
+      unref(sampling),
+      unref(sampleSplit),
+      unref(sampleToString),
+      toValue(digitToChar),
+      toValue(decimalSeparator),
+      toValue(minPlaces),
+      toValue(fillChar)
+    );
+  });
 }
 
 /**
@@ -69,26 +64,25 @@ export function usePartData(options: UsePartDataOptions) {
  * @param value
  * @param numberAdapter
  * @param stringAdapter
- * @param sampleCount
+ * @param sampling
  * @param sampleSplit
  * @param sampleToString
  * @param digitToChar
  * @param decimalSeparator
  * @param minPlaces
+ * @param fillChar
  */
-function processPartData<
-  NS extends NumberAdapter,
-  V = ExtractNumberAdapterType<NS>,
->(
-  value: [V, V],
-  numberAdapter: NS,
-  stringAdapter: StringAdapter,
-  sampleCount: number,
-  sampleSplit: (samples: V[]) => V[][],
-  sampleToString: (value: V) => string,
-  digitToChar: Record<number | string, string>,
-  decimalSeparator: string,
-  minPlaces: [number | undefined, number | undefined] | undefined | null
+function processPartData(
+  value: PartDataOptions["value"],
+  numberAdapter: PartDataOptions["numberAdapter"],
+  stringAdapter: PartDataOptions["stringAdapter"],
+  sampling: PartDataOptions["sampling"],
+  sampleSplit: PartDataOptions["sampleSplit"],
+  sampleToString: PartDataOptions["sampleToString"],
+  digitToChar: PartDataOptions["digitToChar"],
+  decimalSeparator: PartDataOptions["decimalSeparator"],
+  minPlaces: PartDataOptions["minPlaces"],
+  fillChar: PartDataOptions["fillChar"]
 ) {
   const [from, to] = value;
 
@@ -97,17 +91,13 @@ function processPartData<
   /**
    * 对 {@link from} 到 {@link to} 的范围采样.
    */
-  const tempParts: V[][] = sampleSplit(
-    transitionDigit(
-      numberAdapter,
-      numberAdapter.max(from, to),
-      numberAdapter.min(from, to),
-      sampleCount
-    )
-  );
+  const tempParts = sampleSplit(sampling(numberAdapter, from, to));
 
   /**
    * 将时间部分的数字转换为用于滚动的字符串数组
+   *
+   * headNumber: 最先显示的数字. 向下滚动时, 为滚动列表的最后一个数字, 向上滚动时相反.
+   * tailNumber: 最后显示的数字. 向下滚动时, 为滚动列表的第一个数字, 向上滚动时相反.
    */
   {
     const directionValue = numberAdapter.gt(from, to) ? "down" : "up";
@@ -118,7 +108,7 @@ function processPartData<
       const tailNumber =
         partData[directionValue === "down" ? 0 : partData.length - 1];
 
-      const [minIntegerPlaces = 2, minDecimalPlaces = 0] = minPlaces ?? [];
+      const [minIntegerPlaces = 2, minDecimalPlaces = 0] = minPlaces;
 
       const numberParts = sampleToString(tailNumber).split(decimalSeparator);
       const integerPlaces = Math.max(numberParts[0].length, minIntegerPlaces);
@@ -147,14 +137,14 @@ function processPartData<
           );
 
           let result = ([] as string[]).concat(
-            fill(new Array(filledIntegerPlaces), "0"),
+            fill(new Array(filledIntegerPlaces), fillChar),
             stringAdapter.stringToChars(integer)
           );
           if (decimalPlaces > 0) {
             result = result.concat(
               [decimalSeparator],
               stringAdapter.stringToChars(decimal),
-              fill(new Array(filledDecimalPlaces), "0")
+              fill(new Array(filledDecimalPlaces), fillChar)
             );
           }
           return result;

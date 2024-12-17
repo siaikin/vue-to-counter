@@ -1,10 +1,13 @@
-import { defineComponent, computed, toRef } from "vue";
+import { defineComponent, computed, toRef, ExtractPropTypes } from "vue";
 import { useLocale } from "./composables/use-locale";
 import { toRefs } from "@vueuse/core";
-import { VueToCounterBaseSlots, VueToCounterNumberProps } from "./types-props";
+import {
+  VueToCounterBaseSlots,
+  VueToCounterNumberProps,
+  VueToCounterPropsReturn,
+} from "./types";
 import VueToCounter from "./VueToCounter";
-import { isString } from "lodash-es";
-import { VueToCounterProps } from "./types";
+import { isBoolean, isString } from "lodash-es";
 
 export default defineComponent({
   name: "VueToCounterNumber",
@@ -21,7 +24,11 @@ export default defineComponent({
 
     const useLocalizedNumber = computed(() => !!localeNumber.value);
     const intlNumberFormat = computed(
-      () => new Intl.NumberFormat(locale.value, localeNumber.value)
+      () =>
+        new Intl.NumberFormat(
+          locale.value,
+          isBoolean(localeNumber.value) ? {} : localeNumber.value
+        )
     );
     const localDecimalSeparator = computed(
       () =>
@@ -30,16 +37,16 @@ export default defineComponent({
           .find((part) => part.type === "decimal")?.value || "."
     );
 
-    const partDataOptions = computed<VueToCounterProps["partDataOptions"]>(
-      () => ({
-        ...props.partDataOptions,
-        decimalSeparator: localDecimalSeparator.value,
-        sampleToString: (value) =>
-          useLocalizedNumber.value
-            ? intlNumberFormat.value.format(value)
-            : value.toString(10),
-      })
-    );
+    const partDataOptions = computed<
+      ExtractPropTypes<typeof VueToCounterPropsReturn>["partDataOptions"]
+    >(() => ({
+      ...props.partDataOptions,
+      decimalSeparator: localDecimalSeparator.value,
+      sampleToString: (value) =>
+        useLocalizedNumber.value
+          ? intlNumberFormat.value.format(value)
+          : value.toString(10),
+    }));
 
     return () => (
       <VueToCounter

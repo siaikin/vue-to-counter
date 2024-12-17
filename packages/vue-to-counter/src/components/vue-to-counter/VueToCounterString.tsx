@@ -1,8 +1,11 @@
-import { defineComponent, computed, ref, watch } from "vue";
-import { toRefs } from "@vueuse/core";
-import { VueToCounterBaseSlots, VueToCounterStringProps } from "./types-props";
+import { defineComponent, computed, ref, watch, ExtractPropTypes } from "vue";
+import { toRefs, useMounted } from "@vueuse/core";
+import {
+  VueToCounterBaseSlots,
+  VueToCounterPropsReturn,
+  VueToCounterStringProps,
+} from "./types";
 import VueToCounter from "./VueToCounter";
-import { VueToCounterProps } from "./types";
 
 /**
  * 替换一些特定的字符.
@@ -17,21 +20,27 @@ export default defineComponent({
   props: VueToCounterStringProps(),
   slots: VueToCounterBaseSlots,
   setup: (props, { attrs, slots }) => {
-    const { numberAdapter, stringAdapter } = toRefs(props);
+    const { stringAdapter } = toRefs(props);
 
     const alphabet = ref("");
-    const replacedValue = computed(() =>
-      props.value.replaceAll(" ", REPLACED_CHARS[" "])
+    const replacedValue = computed(() => props.value);
+    const initialValueChars = computed(() =>
+      stringAdapter.value.stringToChars(props.initialValue ?? "")
     );
+    const isMounted = useMounted();
     watch(
       [replacedValue, stringAdapter],
       ([value, stringAdapterValue], [oldValue]) => {
         const charSet = new Set(
           stringAdapterValue
             .stringToChars(oldValue ?? "")
-            .concat(stringAdapterValue.stringToChars(value ?? ""))
+            .concat(
+              stringAdapterValue.stringToChars(value ?? ""),
+              isMounted.value ? [] : initialValueChars.value
+            )
         );
-        alphabet.value = [" "].concat(Array.from(charSet)).join("");
+        charSet.add("\x00");
+        alphabet.value = Array.from(charSet).sort().join("");
       },
       { immediate: true }
     );
@@ -41,12 +50,12 @@ export default defineComponent({
       ...props.digitToChar,
     }));
 
-    const partDataOptions = computed<VueToCounterProps["partDataOptions"]>(
-      () => ({
-        ...props.partDataOptions,
-        sampleToString: (value) => numberAdapter.value.toString(value),
-      })
-    );
+    const partDataOptions = computed<
+      ExtractPropTypes<typeof VueToCounterPropsReturn>["partDataOptions"]
+    >(() => ({
+      fillChar: REPLACED_CHARS[" "],
+      ...props.partDataOptions,
+    }));
 
     return () => (
       <VueToCounter

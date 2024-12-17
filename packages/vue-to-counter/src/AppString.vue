@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { BuildInIntlSegmenterAdapter, DecimalJsAdapter } from "./index";
-import type { GroupAnimationOptions } from "./components";
 
 const debug = ref(true);
 // const value = ref("abcdefghijklmnopqrstuvwxyz");
@@ -16,7 +15,7 @@ const minPlaces = ref<[number, number]>([0, 0]);
 const decimalJsAdapter = DecimalJsAdapter();
 const buildInIntlSegmenter = BuildInIntlSegmenterAdapter();
 
-const animationOptions: Partial<GroupAnimationOptions> = {
+const animationOptions = {
   // delay: (testResult, data) => {
   // console.log("delay", toRaw(testResult), toRaw(data));
   // return 0;

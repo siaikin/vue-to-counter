@@ -1,27 +1,83 @@
 <script setup lang="ts">
-import DefaultTheme from "vitepress/theme";
-import { ref } from "vue";
-import { VueToCounterString } from "vue-to-counter";
+import { type Ref, inject } from "vue";
+import type { DefaultTheme } from "vitepress/theme";
+import VPButton from "vitepress/dist/client/theme-default/components/VPButton.vue";
+import VPImage from "vitepress/dist/client/theme-default/components/VPImage.vue";
 
-const { Layout } = DefaultTheme;
+export interface HeroAction {
+  theme?: "brand" | "alt";
+  text: string;
+  link: string;
+  target?: string;
+  rel?: string;
+}
 
-const value = ref("              ");
-setTimeout(() => (value.value = "Vue To Counter"));
+defineProps<{
+  name?: string;
+  text?: string;
+  tagline?: string;
+  image?: DefaultTheme.ThemeableImage;
+  actions?: HeroAction[];
+}>();
+
+const heroImageSlotExists = inject("hero-image-slot-exists") as Ref<boolean>;
 </script>
 
 <template>
-  <Layout>
-    <template #home-hero-info>
-      <h1 class="name">
-        <VueToCounterString
-          class="clip"
-          :style="{ fontFamily: 'var(--vp-font-family-mono)' }"
-          :value="value"
-        />
-        <!--        <span class="clip">Vue To Counter</span>-->
-      </h1>
-    </template>
-  </Layout>
+  <div class="VPHero" :class="{ 'has-image': image || heroImageSlotExists }">
+    <div class="container">
+      <div class="main">
+        <slot name="home-hero-info-before" />
+        <slot name="home-hero-info">
+          <h1 v-if="name" class="name">
+            <VueToCounterString
+              class="clip"
+              :style="{ fontFamily: 'var(--vp-font-family-mono)' }"
+              color="linear-gradient(120deg, #ed556a, #7a7374)"
+              :value="name"
+              :initial-value="name.replace(/./g, ' ')"
+              :part-data-options="{ sampleCount: 2 }"
+              :animation-options="{
+                delay: ({ testResults }) => {
+                  let delay = 0;
+                  return testResults.map((part) =>
+                    part.map((digit) => digit.animate && delay++ * 100)
+                  );
+                },
+              }"
+            />
+          </h1>
+          <p v-if="text" v-html="text" class="text"></p>
+          <p v-if="tagline" v-html="tagline" class="tagline"></p>
+        </slot>
+        <slot name="home-hero-info-after" />
+
+        <div v-if="actions" class="actions">
+          <div v-for="action in actions" :key="action.link" class="action">
+            <VPButton
+              tag="a"
+              size="medium"
+              :theme="action.theme"
+              :text="action.text"
+              :href="action.link"
+              :target="action.target"
+              :rel="action.rel"
+            />
+          </div>
+        </div>
+        <slot name="home-hero-actions-after" />
+      </div>
+
+      <div v-if="image || heroImageSlotExists" class="image">
+        <div class="image-container">
+          <div class="image-bg" />
+          <slot name="home-hero-image">
+            <VPImage v-if="image" class="image-src" :image="image" />
+          </slot>
+        </div>
+      </div>
+    </div>
+  </div>
 </template>
 
 <style scoped>

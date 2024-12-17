@@ -6,14 +6,17 @@ import {
   watch,
   toRef,
   normalizeClass,
+  onMounted,
+  toRaw,
 } from "vue";
 import CounterRoller from "./CounterRoller.vue";
 import { useDirection } from "./composables/use-direction";
-import { usePartData } from "./composables/use-part-data";
+import { PartDataOptions, usePartData } from "./composables/use-part-data";
 import { anyBase } from "./utils/any-base";
-import { clone, isArray, isEqual, isNumber, isString } from "lodash-es";
+import { clone, isArray, isEqual, isNumber } from "lodash-es";
 import { toRefs, watchWithFilter } from "@vueuse/core";
-import { VueToCounterBaseSlots, VueToCounterProps } from "./types-props";
+import { VueToCounterBaseSlots, VueToCounterProps } from "./types";
+import { transitionDigit } from "./utils/transition-digit";
 
 import "./VueToCounter.scss";
 
@@ -21,18 +24,22 @@ export default defineComponent({
   name: "VueToCounter",
   props: VueToCounterProps(),
   slots: VueToCounterBaseSlots,
-  setup: (props, { attrs, slots }) => {
+  setup: (props, { slots }) => {
     const {
+      initialValue,
       duration,
       color,
       minPlaces,
-      partDataOptions,
       tag,
       numberAdapter,
       stringAdapter,
+      digitStyle,
+      prefix,
+      suffix,
     } = toRefs(props);
 
-    const value = ref(clone(props.value));
+    const value = ref(clone(initialValue.value ?? props.value));
+    onMounted(() => initialValue.value && (value.value = clone(props.value)));
     watchWithFilter(
       toRef(props, "value"),
       /**
@@ -98,9 +105,11 @@ export default defineComponent({
       { immediate: true }
     );
     function toNumber(value: string | number | number[] | bigint) {
+      if (isNumber(value) || typeof value === "bigint")
+        return numberAdapter.value.create(value);
+
       if (isArray(value))
         value = value.map((codePoint) => toChar(codePoint)).join("");
-      else if (!isString(value)) value = value.toString(10);
 
       return numberAdapter.value.create(anyBaseToDecimal.value(value));
     }
@@ -110,55 +119,73 @@ export default defineComponent({
 
     const direction = useDirection(numberAdapter, valueDifferences);
 
-    const durationPartData = usePartData({
-      value: valueDifferences,
-      numberAdapter,
-      stringAdapter,
+    const partDataOptions = computed<
+      Omit<PartDataOptions, "value" | "numberAdapter" | "stringAdapter">
+    >(() => ({
+      sampleCount: 16,
+      decimalSeparator: ".",
+      fillChar: "0",
+      sampling: (na, from, to) =>
+        transitionDigit(
+          na,
+          na.max(from, to),
+          na.min(from, to),
+          props.partDataOptions.sampleCount ?? 16
+        ),
       sampleSplit: (samples) => [samples.slice()],
-      minPlaces,
-      digitToChar,
-      ...toRefs(partDataOptions),
-      sampleToString: (value) => {
+      minPlaces: minPlaces.value,
+      digitToChar: digitToChar.value,
+      ...props.partDataOptions,
+      sampleToString: (value): string => {
+        const toString =
+          props.partDataOptions?.sampleToString ?? numberAdapter.value.toString;
+
+        // todo bigint need to convert ?
         if (needToConvert.value) {
-          if (partDataOptions.value?.sampleToString) {
-            return decimalToAnyBase.value(
-              partDataOptions.value?.sampleToString(value)
-            );
-          } else {
-            return decimalToAnyBase.value(value.toString(10));
-          }
+          const toAnyBase = decimalToAnyBase.value;
+          return toAnyBase(toString(value));
         } else {
-          return value.toString(10);
+          return toString(value);
         }
       },
-    });
+    }));
+    const durationPartData = usePartData(
+      valueDifferences,
+      numberAdapter,
+      stringAdapter,
+      partDataOptions
+    );
 
     const backgroundClippedPartContainer = ref<HTMLSpanElement>();
+
+    const cachedSlots = computed(() => ({
+      prefix: prefix.value ? () => prefix.value : undefined,
+      suffix: suffix.value ? () => suffix.value : undefined,
+      ...slots,
+    }));
 
     return () =>
       h(
         tag.value,
         {
-          ...attrs,
           ref: backgroundClippedPartContainer,
-          class:
-            normalizeClass({
-              "vue-to-counter": true,
-              debug: props.debug,
-            }) +
-            " " +
-            normalizeClass(attrs["class"]),
+          class: normalizeClass({
+            "vue-to-counter": true,
+            debug: props.debug,
+          }),
         },
         [
           <CounterRoller
             container={backgroundClippedPartContainer.value}
+            value={valueDifferences.value}
             data={durationPartData.value}
             duration={duration.value}
             color={color.value}
             direction={direction.value}
             animationOptions={props.animationOptions}
+            digitStyle={digitStyle.value}
           >
-            {{ ...slots }}
+            {toRaw(cachedSlots.value)}
           </CounterRoller>,
         ]
       );

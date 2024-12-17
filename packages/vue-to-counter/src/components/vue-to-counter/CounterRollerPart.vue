@@ -12,6 +12,13 @@ import { v4 as uuid } from "uuid";
 import { useElementSize, watchTriggerable } from "@vueuse/core";
 import { AnimationOptions, PartDataDigit } from "./types";
 import { RollerPartTestResult } from "./composables/use-roller-part-test";
+import { polyfillKeyframes } from "./utils/polyfill-keyframes";
+
+import { apply as elementCheckVisibilityPolyfill } from "@github/browser-support/lib/element-checkvisibility";
+/**
+ * @see https://caniuse.com/?search=checkVisibility
+ */
+elementCheckVisibilityPolyfill();
 
 const props = defineProps({
   partId: {
@@ -37,8 +44,12 @@ const props = defineProps({
   textStyle: {
     type: Object as PropType<CSSProperties>,
   },
+  digitStyle: {
+    type: Array as PropType<(CSSProperties | undefined)[]>,
+    default: () => [],
+  },
   animationOptions: {
-    type: Object as PropType<Partial<AnimationOptions>>,
+    type: Object as PropType<AnimationOptions>,
   },
 });
 const {
@@ -47,35 +58,60 @@ const {
   direction,
   digits,
   textStyle,
-  duration,
+  digitStyle,
+  duration: globalDuration,
   animationOptions,
 } = toRefs(props);
-
 const rollDigitList = computed(() => digits.value.data);
 
 let animation: Animation | null = null;
+let animationElement: HTMLElement | null = null;
+const defaultKeyframe = {
+  up: {
+    transform: ["translateY(0)", "translateY(-100%)"],
+  },
+  down: {
+    transform: ["translateY(0)", "translateY(100%)"],
+  },
+};
 async function handleEnter(el: Element, done: () => void) {
-  const { delay = 0, easing } = toValue(animationOptions) ?? {};
+  const {
+    delay = 0,
+    easing,
+    iterations = 1,
+    duration = globalDuration.value,
+    endDelay = 0,
+    keyframe = defaultKeyframe[direction.value],
+  } = toValue(animationOptions) ?? {};
+
   try {
-    const keyframes: PropertyIndexedKeyframes = {};
-
-    switch (direction.value) {
-      case "up":
-        keyframes["transform"] = ["translateY(0)", "translateY(-100%)"];
-        break;
-      case "down":
-        keyframes["transform"] = ["translateY(0)", "translateY(100%)"];
-    }
-
-    animation = el.animate(keyframes, {
-      duration: duration.value,
-      iterations: 1,
+    animation = el.animate(polyfillKeyframes(keyframe), {
+      duration,
+      iterations,
       fill: "forwards",
       delay,
+      endDelay,
       easing,
     });
+    animationElement = el as HTMLElement;
 
+    /**
+     * 动画播放完成或被其他动画中断都会使得 `finished` resolve.
+     * 只有当动画顺利播放完成的情况下, 才能调用 `cancel` 取消动画. 在其他情况下调用, 会抛出异常[1].
+     *
+     * 因此, 提前检查 `playState` 的值. 当 `playState` 不是 `finished` 时, 说明动画被其他 `Animation` 实例中断.
+     * 因为已经有其他 `Animation` 实例的存在, 我们可以直接丢弃这个 `Animation` 实例, 而不用担心无动画可用.
+     *
+     * [1]: https://developer.mozilla.org/en-US/docs/Web/API/Animation/cancel#exceptions
+     */
     await animation.finished;
+    if (
+      animation.playState === "finished" &&
+      animationElement.checkVisibility()
+    ) {
+      animation.commitStyles();
+      animation.cancel();
+    }
   } catch (e) {
     console.error(e);
   } finally {
@@ -92,12 +128,18 @@ const { trigger } = watchTriggerable(
       testResult.value,
       direction.value,
       digits.value,
-      duration.value,
+      globalDuration.value,
       partId.value,
     ] as const,
   (value) => {
     const [testResultValue] = value;
-    if (testResultValue.cancelPrevAnimation) animation?.cancel();
+    if (testResultValue.cancelPrevAnimation)
+      if (
+        animationElement &&
+        animationElement.style &&
+        animationElement.style.cssText
+      )
+        animationElement.style.cssText = "";
     if (!testResultValue.animate) return;
 
     transitionKey.value = uuid();
@@ -105,19 +147,17 @@ const { trigger } = watchTriggerable(
 );
 onMounted(() => trigger());
 
-const rollDigitListRef = ref<HTMLSpanElement | null>(null);
-const { width } = useElementSize(rollDigitListRef);
+const clonedRollDigitListRef = ref<HTMLSpanElement | null>(null);
+const { width } = useElementSize(clonedRollDigitListRef);
 const placeholderWidth = computed(() => `${Math.round(width.value)}px`);
 </script>
 
 <template>
-  <span ref="rootRef" class="relative">
+  <span ref="rootRef" class="roller-part">
     <!--    占位      -->
-    <span class="inline-block" :style="{ width: placeholderWidth }" />
-    <span
-      ref="rollDigitListRef"
-      class="absolute -z-10 invisible inline-flex flex-col text-nowrap"
-    >
+    <span class="placeholder" :style="{ width: placeholderWidth }">0</span>
+    <!--  一个不可见的滚动列表的复制, 用于计算该列表的最大宽度.  -->
+    <span ref="clonedRollDigitListRef" class="roll-list__shadow">
       <span v-for="(digit, digitIndex) in rollDigitList" :key="digitIndex">
         {{ digit }}
       </span>
@@ -125,14 +165,14 @@ const placeholderWidth = computed(() => `${Math.round(width.value)}px`);
     <transition @enter="handleEnter" @after-enter="handleAfterEnter">
       <span
         :key="transitionKey"
-        class="absolute left-0 inline-flex flex-col items-center w-full"
+        class="roll-list"
         :class="{
           /**
            * 向上(up)滚动时, 使滚动列表顶部对齐以便于应用 `translationY(-100%)` 实现向上滚动效果
            * 向下同理
            */
-          'top-0': direction === 'up',
-          'bottom-0': direction === 'down',
+          'roll-list__up': direction === 'up',
+          'roll-list__down': direction === 'down',
         }"
       >
         <template v-if="rollDigitList.length > 1">
@@ -144,26 +184,26 @@ const placeholderWidth = computed(() => `${Math.round(width.value)}px`);
               v-if="
                 direction === 'up' && digitIndex === rollDigitList.length - 1
               "
-              class="absolute top-full"
-              :style="textStyle"
+              class="roll-item roll-item__head"
+              :style="digitStyle[digitIndex]"
             >
-              {{ digit }}
+              <span :style="textStyle">{{ digit }}</span>
             </span>
             <span
               v-else-if="direction === 'down' && digitIndex === 0"
-              class="absolute bottom-full"
-              :style="textStyle"
+              class="roll-item roll-item__tail"
+              :style="digitStyle[digitIndex]"
             >
-              {{ digit }}
+              <span :style="textStyle">{{ digit }}</span>
             </span>
-            <span v-else class="inline-block" :style="textStyle">
-              {{ digit }}
+            <span v-else class="roll-item" :style="digitStyle[digitIndex]">
+              <span :style="textStyle">{{ digit }}</span>
             </span>
           </template>
         </template>
         <template v-else>
-          <span class="inline-block" :style="textStyle">
-            {{ rollDigitList[0] }}
+          <span class="roll-item" :style="digitStyle[0]">
+            <span :style="textStyle">{{ rollDigitList[0] }}</span>
           </span>
         </template>
       </span>

@@ -11,6 +11,19 @@ export interface RollerPartTestResult {
    * 是否需要移除上一次的动画设置的样式
    */
   cancelPrevAnimation: boolean;
+  earlyReturn?: string;
+  /**
+   * 全局索引
+   */
+  index: number;
+  /**
+   * 所在 {@link PartData} 的索引
+   */
+  partIndex: number;
+  /**
+   * 所在 {@link PartDataDigit} 的索引
+   */
+  digitIndex: number;
 }
 export function useRollerPartTest(
   data: MaybeRefOrGetter<PartData[]>,
@@ -25,6 +38,7 @@ export function useRollerPartTest(
       const [oldDirection, oldData] = oldValue ?? value;
       const results: RollerPartTestResult[][] = [];
 
+      let globalIndex = 0;
       for (let i = 0; i < newData.length; i++) {
         const newPart = newData[i];
         const oldPart = oldData?.[i];
@@ -36,9 +50,15 @@ export function useRollerPartTest(
             (d) => d.place === newDigit.place
           );
 
-          partDataResults.push(
-            rollerPartTest([newDirection, oldDirection], [newDigit, oldDigit])
-          );
+          partDataResults.push({
+            ...rollerPartTest(
+              [newDirection, oldDirection],
+              [newDigit, oldDigit]
+            ),
+            index: globalIndex++,
+            partIndex: i,
+            digitIndex: j,
+          });
         }
         results.push(partDataResults);
       }
@@ -49,7 +69,7 @@ export function useRollerPartTest(
   );
 
   return {
-    testResult: rollerPartTestResults,
+    testResults: rollerPartTestResults,
   };
 }
 
@@ -68,7 +88,10 @@ function rollerPartTest(
   const [newDirection, oldDirection] = direction;
   const [newDigits, oldDigits] = digits;
 
-  const result: RollerPartTestResult = {
+  const result: Pick<
+    RollerPartTestResult,
+    "animate" | "cancelPrevAnimation" | "earlyReturn"
+  > = {
     animate: true,
     cancelPrevAnimation: false,
   };
@@ -92,7 +115,7 @@ function rollerPartTest(
     earlyReturn = "same digits";
   }
 
-  if (earlyReturn) console.log(earlyReturn);
+  if (earlyReturn) result.earlyReturn = earlyReturn;
 
   return result;
 }

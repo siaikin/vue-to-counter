@@ -15,6 +15,7 @@ export default defineConfig({
     }),
   ],
   build: {
+    sourcemap: true,
     target: "modules",
     lib: {
       entry: resolve(__dirname, "src/index"),
@@ -22,7 +23,7 @@ export default defineConfig({
       formats: ["es", "cjs"],
     },
     rollupOptions: {
-      external: ["vue"],
+      external: ["vue", "decimal.js", "grapheme-splitter"],
     },
   },
   css: {

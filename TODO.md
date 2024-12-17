@@ -3,3 +3,4 @@
 3. [ ] 强制等宽
 4. [x] BigInt
 5. [ ] 文档 d3 ease 生成
+6. [x] initialValue

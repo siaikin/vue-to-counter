@@ -7,17 +7,31 @@ import {
   ref,
   useSlots,
   watchEffect,
+  computed,
 } from "vue";
-import { GroupAnimationOptions, PartData } from "./types";
+import {
+  AnimationOptions,
+  GroupAnimationOptions,
+  PartData,
+  PartDigitCellValueOrGetter,
+} from "./types";
 import { useResizeObserver } from "@vueuse/core";
 import CounterRollerPart from "./CounterRollerPart.vue";
 import { debounce, isArray } from "lodash-es";
 import { useRollerPartTest } from "./composables/use-roller-part-test";
-import { useAnimationOptions } from "./composables/use-animation-options";
+import {
+  extractPartDigitCellOption,
+  extractPartDigitOption,
+} from "./utils/extract-group-option";
 
 const props = defineProps({
   container: {
     type: HTMLElement as PropType<HTMLElement>,
+  },
+  value: {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    type: Object as PropType<[any, any]>,
+    required: true,
   },
   data: {
     type: Object as PropType<PartData[]>,
@@ -39,8 +53,22 @@ const props = defineProps({
     type: Object as PropType<Partial<GroupAnimationOptions>>,
     default: () => ({}),
   },
+  digitStyle: {
+    type: [Object, Array, Function] as PropType<
+      PartDigitCellValueOrGetter<CSSProperties>
+    >,
+    default: () => ({}),
+  },
 });
-const { data, color, container, animationOptions, direction } = toRefs(props);
+const {
+  value,
+  data,
+  color,
+  container,
+  animationOptions,
+  direction,
+  digitStyle,
+} = toRefs(props);
 
 const containerRect = ref<DOMRect>();
 const updateContainerRect = debounce(
@@ -116,6 +144,7 @@ watchEffect(() => {
         backgroundPositionY: `${-el.offsetTop}px`,
         backgroundRepeat: "no-repeat",
         color: "transparent",
+        "-webkit-text-fill-color": "transparent",
       });
     } else {
       result.set(partId, {});
@@ -128,11 +157,46 @@ watchEffect(() => {
 
 const slots = useSlots();
 
-const { testResult } = useRollerPartTest(data, direction);
-const { animationOptions: rollerPartAnimationOptions } = useAnimationOptions(
-  testResult,
-  data,
-  animationOptions
+const rollerOptions = computed(() => ({
+  testResults: testResults.value,
+  direction: direction.value,
+  value: value.value,
+  data: data.value,
+}));
+const { testResults } = useRollerPartTest(data, direction);
+const rollerPartAnimationOptions = computed(() => {
+  const { easing, delay, endDelay, iterations, duration, keyframe } =
+    animationOptions.value;
+  const rollerOptionsValue = rollerOptions.value;
+
+  return {
+    easing: extractPartDigitOption(easing, rollerOptionsValue),
+    delay: extractPartDigitOption(delay, rollerOptionsValue),
+    iterations: extractPartDigitOption(iterations, rollerOptionsValue),
+    duration: extractPartDigitOption(duration, rollerOptionsValue),
+    endDelay: extractPartDigitOption(endDelay, rollerOptionsValue),
+    keyframe: extractPartDigitOption(
+      keyframe,
+      rollerOptionsValue
+    ) as AnimationOptions["keyframe"][][],
+  };
+});
+
+function getAnimationOptions(partIndex: number, digitIndex: number) {
+  const rollerPartAnimationOptionsValue = rollerPartAnimationOptions.value;
+  return {
+    easing: rollerPartAnimationOptionsValue.easing[partIndex][digitIndex],
+    delay: rollerPartAnimationOptionsValue.delay[partIndex][digitIndex],
+    iterations:
+      rollerPartAnimationOptionsValue.iterations[partIndex][digitIndex],
+    duration: rollerPartAnimationOptionsValue.duration[partIndex][digitIndex],
+    endDelay: rollerPartAnimationOptionsValue.endDelay[partIndex][digitIndex],
+    keyframe: rollerPartAnimationOptionsValue.keyframe[partIndex][digitIndex],
+  };
+}
+
+const rollerPartStyle = computed(() =>
+  extractPartDigitCellOption(digitStyle.value, rollerOptions.value)
 );
 </script>
 
@@ -146,64 +210,54 @@ export default {
   <span
     v-if="slots['prefix']"
     ref="backgroundClippedPartPrefix"
-    class="roller-part"
+    class="roller-part__prefix"
     data-part-id="part-prefix"
     :style="backgroundClippedPartStyleMap.get('part-prefix')"
   >
     <slot name="prefix" />
   </span>
-  <template v-for="(partData, partIndex) in data" :key="partIndex">
-    <span
-      v-for="(digit, digitIndex) in partData.digits ?? []"
-      ref="backgroundClippedParts"
-      class="roller-part"
-      :key="partData.digits.length - digitIndex"
-      :data-part-id="`part-${partIndex}-${partData.digits.length - digitIndex}`"
-    >
-      <CounterRollerPart
-        class="inline-block"
-        :part-id="`part-${partIndex}-${partData.digits.length - digitIndex}`"
-        :duration="duration"
-        :text-style="
-          backgroundClippedPartStyleMap.get(
-            `part-${partIndex}-${partData.digits.length - digitIndex}`
-          )
-        "
-        :direction="direction"
-        :digits="digit"
-        :test-result="testResult[partIndex][digitIndex]"
-        :animation-options="rollerPartAnimationOptions[partIndex][digitIndex]"
-      />
-    </span>
-    <span
-      ref="backgroundClippedParts"
-      class="roller-part"
-      :data-part-id="`part-${partIndex}-unit`"
-      :style="backgroundClippedPartStyleMap.get(`part-${partIndex}-unit`)"
-    >
-      <slot name="partSuffix" :partData="partData" :index="partIndex" />
-    </span>
-  </template>
+  <span class="roller-parts">
+    <template v-for="(partData, partIndex) in data" :key="partIndex">
+      <span
+        v-for="(digit, digitIndex) in partData.digits ?? []"
+        ref="backgroundClippedParts"
+        class="roller-part__wrapper"
+        :key="partData.digits.length - digitIndex"
+        :data-part-id="`part-${partIndex}-${partData.digits.length - digitIndex}`"
+      >
+        <CounterRollerPart
+          :part-id="`part-${partIndex}-${partData.digits.length - digitIndex}`"
+          :duration="duration"
+          :text-style="
+            backgroundClippedPartStyleMap.get(
+              `part-${partIndex}-${partData.digits.length - digitIndex}`
+            )
+          "
+          :direction="direction"
+          :digits="digit"
+          :test-result="testResults[partIndex][digitIndex]"
+          :animation-options="getAnimationOptions(partIndex, digitIndex)"
+          :digit-style="rollerPartStyle[partIndex][digitIndex]"
+        />
+      </span>
+      <span
+        v-if="slots['partSuffix']"
+        ref="backgroundClippedParts"
+        class="roller-part__unit"
+        :data-part-id="`part-${partIndex}-unit`"
+        :style="backgroundClippedPartStyleMap.get(`part-${partIndex}-unit`)"
+      >
+        <slot name="partSuffix" :partData="partData" :index="partIndex" />
+      </span>
+    </template>
+  </span>
   <span
     ref="backgroundClippedPartSuffix"
     v-if="slots['suffix']"
-    class="inline-block"
+    class="roller-part__prefix"
     data-part-id="part-suffix"
     :style="backgroundClippedPartStyleMap.get('part-suffix')"
   >
     <slot name="suffix" />
   </span>
 </template>
-
-<style lang="scss" scoped>
-.roller-part {
-  /*
-    增加行高避免具有下降部分的字符(如: g, j, p, q, y)的下降部分被截断
-    @see https://en.wikipedia.org/wiki/Descender
-    @see https://tailwindcss.com/docs/line-height
-
-    @deprecated 行高样式由外部设置, 提供更高的自由度
-  */
-  //@apply inline-block leading-tight;
-}
-</style>

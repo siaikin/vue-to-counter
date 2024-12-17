@@ -21,6 +21,7 @@
     "typings/global.d.ts"
   ],
   "dependencies": {
+    "@github/browser-support": "^4.1.0",
     "@types/node": "^22.9.3",
     "@vueuse/core": "^11.3.0",
     "d3-array": "^3.2.4",

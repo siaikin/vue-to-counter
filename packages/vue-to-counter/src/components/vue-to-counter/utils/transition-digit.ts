@@ -50,17 +50,17 @@ function interpolateRound<
   V = ExtractNumberAdapterType<NS>,
 >(na: NS, a: V, b: V) {
   return function (t: V) {
-    console.log(`
-      a: ${na.toString(a)},
-      b: ${na.toString(b)},
-      t: ${t},
-      1 - t: ${na.toString(na.sub(na.create(1), t))},
-      a * (1 - t): ${na.toString(na.mul(a, na.sub(na.create(1), t)))},
-      b * t: ${na.toString(na.mul(b, t))}
-      a * (1 - t) + b * t: ${na.toString(
-        na.add(na.mul(a, na.sub(na.create(1), t)), na.mul(b, t))
-      )}
-    `);
+    // console.log(`
+    //   a: ${na.toString(a)},
+    //   b: ${na.toString(b)},
+    //   t: ${t},
+    //   1 - t: ${na.toString(na.sub(na.create(1), t))},
+    //   a * (1 - t): ${na.toString(na.mul(a, na.sub(na.create(1), t)))},
+    //   b * t: ${na.toString(na.mul(b, t))}
+    //   a * (1 - t) + b * t: ${na.toString(
+    //     na.add(na.mul(a, na.sub(na.create(1), t)), na.mul(b, t))
+    //   )}
+    // `);
     return na.round(na.add(na.mul(a, na.sub(na.create(1), t)), na.mul(b, t)));
   };
 }

@@ -1,4 +1,10 @@
-import { defineComponent, computed, toRef, toValue } from "vue";
+import {
+  defineComponent,
+  computed,
+  toRef,
+  toValue,
+  ExtractPropTypes,
+} from "vue";
 import { iso8601Duration } from "./utils/iso8601-duration";
 import { durationObject } from "./utils/duration";
 import { usePrecision } from "./composables/use-precision";
@@ -11,9 +17,12 @@ import {
   DurationPartMillisecond,
   VueToCounterBaseSlots,
   VueToCounterDatetimeDurationProps,
-} from "./types-props";
+  VueToCounterPropsReturn,
+} from "./types";
 import VueToCounter from "./VueToCounter";
 import { PartDataOptions } from "./composables/use-part-data";
+
+import "./VueToCounterDatetimeDuration.scss";
 
 export default defineComponent({
   name: "VueToCounterDatetimeDuration",
@@ -113,19 +122,22 @@ export default defineComponent({
 
     return () => (
       <VueToCounter
-        {...props}
+        {...(props as unknown as ExtractPropTypes<
+          typeof VueToCounterPropsReturn
+        >)}
         {...{
           ...attrs,
           datetime: datetimeAttribute.value,
         }}
-        value={optimizedFrom.value}
+        class={"vue-to-counter-datetime-duration"}
+        value={fromToDuration.value}
         partDataOptions={partDataOptions.value}
         tag={"time"}
       >
         {{
           ...slots,
           partSuffix: ({ index }: { index: number }) => (
-            <span style="font-size: 0.4em">
+            <span class="duration-unit">
               {
                 dateTimeFieldLabels.value[
                   availableDurationPartTypes.value[index]

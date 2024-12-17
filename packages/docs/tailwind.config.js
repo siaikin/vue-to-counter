@@ -2,7 +2,7 @@
 export default {
   content: [
     "./index.html",
-    "./**/*.{js,ts,jsx,tsx,md}",
+    "./**/*.{js,ts,jsx,tsx,md,vue}",
     ".vitepress/**/*.{js,ts,jsx,tsx,md,vue}",
     "!.vitepress/cache/**/*",
   ],
