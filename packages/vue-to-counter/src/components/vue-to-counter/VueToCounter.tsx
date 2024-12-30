@@ -13,27 +13,40 @@ import CounterRoller from "./CounterRoller.vue";
 import { useDirection } from "./composables/use-direction";
 import { PartDataOptions, usePartData } from "./composables/use-part-data";
 import { anyBase } from "./utils/any-base";
-import { clone, isArray, isEqual, isNumber } from "lodash-es";
+import {
+  clone,
+  isArray,
+  isEqual,
+  isNumber,
+  isObject,
+  isString,
+} from "lodash-es";
 import { toRefs, watchWithFilter } from "@vueuse/core";
-import { VueToCounterBaseSlots, VueToCounterProps } from "./types";
+import {
+  VueToCounterBaseEmits,
+  VueToCounterBaseSlots,
+  VueToCounterProps,
+} from "./types";
 import { transitionDigit } from "./utils/transition-digit";
 
 import "./VueToCounter.scss";
+
+const DecimalAlphabet = "0123456789";
 
 export default defineComponent({
   name: "VueToCounter",
   props: VueToCounterProps(),
   slots: VueToCounterBaseSlots,
+  emits: VueToCounterBaseEmits,
   setup: (props, { slots }) => {
     const {
       initialValue,
-      duration,
       color,
       minPlaces,
       tag,
       numberAdapter,
       stringAdapter,
-      digitStyle,
+      cellStyle,
       prefix,
       suffix,
     } = toRefs(props);
@@ -59,15 +72,19 @@ export default defineComponent({
     const digitToChar = computed(() => {
       const digitToCharValue = props.digitToChar;
 
+      const result: Record<string, string> = {};
+
       if (isArray(digitToCharValue)) {
-        const result: Record<string, string> = {};
         digitToCharValue.forEach(
           (char, index) => (result[toChar(index)] = char)
         );
-        return result;
-      } else {
-        return digitToCharValue;
+      } else if (isObject(digitToCharValue)) {
+        Object.entries(digitToCharValue).forEach(
+          ([key, value]) => (result[key] = value)
+        );
       }
+
+      return result;
     });
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -80,19 +97,28 @@ export default defineComponent({
      */
     const needToConvert = ref(false);
 
-    const alphabet = computed(() =>
-      props.alphabet ? props.alphabet : Object.keys(digitToChar.value).join("")
-    );
+    const alphabet = computed(() => {
+      const _value = value.value;
+
+      if (!props.alphabet) {
+        if (!isString(_value)) return DecimalAlphabet;
+        return Array.from(
+          new Set(stringAdapter.value.stringToChars(_value))
+        ).join("");
+      }
+
+      return props.alphabet;
+    });
 
     const decimalToAnyBase = computed(() =>
-      anyBase(stringAdapter.value, "0123456789", alphabet.value)
+      anyBase(stringAdapter.value, DecimalAlphabet, alphabet.value)
     );
     const anyBaseToDecimal = computed(() =>
-      anyBase(stringAdapter.value, alphabet.value, "0123456789")
+      anyBase(stringAdapter.value, alphabet.value, DecimalAlphabet)
     );
     watch(
-      value,
-      (value, oldValue) => {
+      [value, numberAdapter],
+      ([value], [oldValue]) => {
         oldValue = oldValue ?? value;
 
         needToConvert.value = !isNumber(value) || !isNumber(oldValue);
@@ -133,7 +159,7 @@ export default defineComponent({
           props.partDataOptions.sampleCount ?? 16
         ),
       sampleSplit: (samples) => [samples.slice()],
-      minPlaces: minPlaces.value,
+      minPlaces: minPlaces.value ?? [1, 0],
       digitToChar: digitToChar.value,
       ...props.partDataOptions,
       sampleToString: (value): string => {
@@ -179,11 +205,11 @@ export default defineComponent({
             container={backgroundClippedPartContainer.value}
             value={valueDifferences.value}
             data={durationPartData.value}
-            duration={duration.value}
             color={color.value}
             direction={direction.value}
             animationOptions={props.animationOptions}
-            digitStyle={digitStyle.value}
+            keyframes={props.keyframes}
+            cellStyle={cellStyle.value}
           >
             {toRaw(cachedSlots.value)}
           </CounterRoller>,

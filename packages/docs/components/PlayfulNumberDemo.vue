@@ -8,6 +8,9 @@ function switchNumber() {
   number.value = Math.floor(Math.random() * 1000000);
 }
 
+const italic = ref(false);
+const fontSize = ref(64);
+
 const color = ref(
   "#" +
     Math.floor(Math.random() * 16777215)
@@ -21,11 +24,14 @@ const fontFamily = ref("");
 <template>
   <div class="text-center">
     <vue-to-counter-number
-      class="!text-8xl font-bold"
       :value="number"
       :color="color"
       locale-number
-      :style="{ fontFamily: fontFamily }"
+      :style="{
+        fontSize: fontSize + 'px',
+        fontStyle: italic ? 'italic' : 'normal',
+        fontFamily: fontFamily,
+      }"
     />
   </div>
   <hr />
@@ -34,6 +40,17 @@ const fontFamily = ref("");
     <button class="border border-solid p-1" @click="switchNumber">切换</button>
     <span class="flex-auto" />
     <input class="border border-solid p-1" v-model="color" type="color" />
+  </div>
+  <div class="flex gap-4 mt-4">
+    <label class="inline-flex gap-1 border border-solid p-1">
+      斜体
+      <input v-model="italic" type="checkbox" />
+    </label>
+    <label class="inline-flex gap-1 border border-solid p-1">
+      字号
+      <input v-model="fontSize" type="range" min="1" max="128" />
+      {{ fontSize }}px
+    </label>
   </div>
   <div class="flex gap-4 mt-4">
     <google-font-picker v-model="fontFamily" />

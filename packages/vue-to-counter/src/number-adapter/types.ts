@@ -6,7 +6,7 @@ export interface NumberAdapter<T = any> {
   create(value: string | number | bigint): T;
   add(a: T, b: T): T;
   sub(a: T, b: T): T;
-  mul(a: T, b: T): T;
+  mul(a: T, b: T | number): T;
   div(a: T, b: T): T;
   compare(a: T, b: T): 1 | 0 | -1;
   eq(a: T, b: T): boolean;

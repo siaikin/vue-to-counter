@@ -3,6 +3,8 @@ import { NumberAdapter, BuildInNumberAdapter } from "../../number-adapter";
 import { RollerPartTestResult } from "./composables/use-roller-part-test";
 import { BuildInStringAdapter, StringAdapter } from "../../string-adapter";
 import { CSSProperties, PropType, SlotsType } from "vue";
+import type { DOMKeyframesDefinition } from "motion";
+import type { DynamicAnimationOptions } from "framer-motion/dom";
 
 export const VueToCounterBaseProps = <T>() =>
   ({
@@ -17,15 +19,6 @@ export const VueToCounterBaseProps = <T>() =>
      */
     initialValue: {
       type: null as unknown as PropType<T>,
-    },
-    /**
-     * 动画持续时间, 单位为毫秒.
-     *
-     * @default 1000
-     */
-    duration: {
-      type: Number,
-      default: 1000,
     },
     /**
      * 自定义本地化配置, 否则从浏览器环境中获取.
@@ -43,7 +36,7 @@ export const VueToCounterBaseProps = <T>() =>
     /**
      * 文本颜色, 可使用 CSS 属性 `color` 和 `background-image` 的值.
      *
-     * @default 使用当前元素设置的颜色, 通常为黑色.
+     * @default 继承自父元素.
      *
      * @example "red" 红色
      * @example "transparent" 透明
@@ -52,53 +45,70 @@ export const VueToCounterBaseProps = <T>() =>
      */
     color: {
       type: String,
-      default: "black",
+      default: "inherit",
     },
     /**
      * 当**位数不足**时, 强制补全的 [整数, 小数] 位数. 为空时位数自适应.
      */
     minPlaces: {
       type: Array as unknown as PropType<[number, number]>,
-      default: () => [2, 0],
     },
     /**
      * 可以通过该属性将数字转换为你想要的任意字符串.
-     *
-     * @default ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
      */
     digitToChar: {
       type: [Object, Array] as PropType<
         Record<string | number, string> | string[]
       >,
-      default: () => ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"],
     },
     /**
-     * 传递给 {@link HTMLElement.animate} 接口的选项.
-     * 目前仅支持 {@link KeyframeAnimationOptions.easing} 和 {@link KeyframeAnimationOptions.delay} 选项.
+     * 传递给 motion 接口的选项.
      */
     animationOptions: {
-      type: Object as PropType<Partial<GroupAnimationOptions>>,
+      type: [Object, Array, Function] as PropType<
+        PartDigitValueOrGetter<DynamicAnimationOptions>
+      >,
+    },
+    keyframes: {
+      type: [Object, Array, Function] as PropType<
+        PartDigitValueOrGetter<DOMKeyframesDefinition>
+      >,
     },
     /**
-     * @see {@link NumberAdapter}
+     * 数字适配器, 有以下三种:
+     * 1. BuildInNumberAdapter(默认): 使用内置 number 进行计算.
+     * 2. BuildInBigIntAdapter: 使用 bigint 进行计算.
+     * 3. DecimalJsAdapter: 使用 Decimal.js 进行计算.
      *
-     * @default {@Link BuildInNumberAdapter}
+     * 详细信息请查看[数字适配器](/)章节.
+     *
+     * @default BuildInNumberAdapter
      */
     numberAdapter: {
       type: Object as PropType<NumberAdapter>,
       default: () => BuildInNumberAdapter(),
     },
     /**
-     * @see {@link StringAdapter}
+     * 字符串适配器, 有以下两种:
+     * 1. BuildInStringAdapter(默认): 使用内置 string 进行字符串处理.
+     * 2. BuildInIntlSegmenterAdapter: 使用 Intl.Segmenter 进行字符串处理. 能够支持 emoji, 字符集.
+     * 3. GraphemeSplitterAdapter: 使用 grapheme-splitter 进行字符串处理. 能够支持 emoji, 字符集.
      *
-     * @default {@Link BuildInStringAdapter}
+     * @default BuildInStringAdapter
      */
     stringAdapter: {
       type: Object as PropType<StringAdapter>,
       default: () => BuildInStringAdapter(),
     },
     /**
-     * @see {@link usePartData}
+     * 这是 `usePartData` 的配置项. `usePartData` 被用于从数值的变化中生成用于滚动的数据.
+     * 这里不会有太多解释, 因为它是一个底层的配置项. 你可以查看 `usePartData` 的源码了解更多信息.
+     *
+     * * `sampleToString`: 用于将采样的数据转换为字符串.
+     * * `sampleCount`: 采样的数量.
+     * * `sampleSplit`: 用于将采样的数据分割为多个部分.
+     * * `decimalSeparator`: 小数点分隔符.
+     * * `fillChar`: 用于填充空白的字符.
      */
     partDataOptions: {
       type: Object as PropType<
@@ -116,11 +126,9 @@ export const VueToCounterBaseProps = <T>() =>
       default: () => ({}),
     },
     /**
-     * 对滚轮数字部分的样式进行设置. 传入的对象将被直接应用到滚轮数字部分的样式上.
-     *
-     * 查看 {@link PartDigitCellValueOrGetter} 了解不同的参数类型对应的精度.
+     * 对 `cell` 部分的样式进行设置. 传入的对象将被直接应用到 `cell` 的 `style` 上.
      */
-    digitStyle: {
+    cellStyle: {
       type: [Object, Array, Function] as PropType<
         PartDigitCellValueOrGetter<CSSProperties>
       >,
@@ -148,14 +156,31 @@ export const VueToCounterBaseProps = <T>() =>
       default: false,
     },
   }) as const;
-export const VueToCounterBaseSlots = {} as SlotsType<
-  Partial<{
-    default: void;
-    prefix: void;
-    partSuffix: { partData: PartData; index: number };
-    suffix: void;
-  }>
->;
+export const VueToCounterBaseSlots = {} as SlotsType<{
+  default?: void;
+  /**
+   * 内容将被放置在滚动内容的前面.
+   */
+  prefix?: void;
+  /**
+   * 内容将被放置在每个 part 的后面.
+   */
+  partSuffix?: { partData: PartData; index: number };
+  /**
+   * 内容将被放置在滚动内容的后面.
+   */
+  suffix?: void;
+}>;
+export const VueToCounterBaseEmits = {
+  rollAnimationStart: ({
+    testResults,
+    data,
+  }: Omit<GroupGetterOptions, "value">) => testResults.length && data.length,
+  rollAnimationEnd: ({
+    testResults,
+    data,
+  }: Omit<GroupGetterOptions, "value">) => testResults.length && data.length,
+} as const;
 
 export const VueToCounterDatetimeProps = () =>
   ({
@@ -177,16 +202,22 @@ export const VueToCounterDatetimeProps = () =>
       >,
       default: () => [DurationPartType.Second, DurationPartType.Day],
     },
-  }) as const;
-
-export const VueToCounterDatetimeDurationProps = () =>
-  ({
-    ...VueToCounterDatetimeProps(),
-    value: {
-      type: Array as PropType<(Date | number | string)[]>,
-      required: true,
+    minPlaces: {
+      type: Array as unknown as PropType<[number, number]>,
+      default: () => [2, 0],
     },
   }) as const;
+
+export const VueToCounterDatetimeDurationProps = () => {
+  const vueToCounterDatetimeProps = VueToCounterDatetimeProps();
+  return {
+    ...VueToCounterBaseProps<
+      [Date | number | string, Date | number | string]
+    >(),
+    precision: vueToCounterDatetimeProps.precision,
+    minPlaces: vueToCounterDatetimeProps.minPlaces,
+  } as const;
+};
 
 export const VueToCounterNumberProps = () =>
   ({
@@ -194,7 +225,7 @@ export const VueToCounterNumberProps = () =>
     /**
      * 本地化数字格式化配置. 传入 `true` 时使用默认配置.
      *
-     * 详细配置参数请参考 {@link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/NumberFormat/NumberFormat}
+     * 详细配置参数请参考 [Intl.NumberFormat](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/NumberFormat/NumberFormat)
      *
      * @default false
      */
@@ -228,9 +259,9 @@ export const VueToCounterProps = () =>
   ({
     ...VueToCounterBaseProps<number | number[] | string | bigint>(),
     /**
-     * 自定义字符集, 传入的 {@link value} 的字符串表示形式的每个字符都必须被包含在该字符集中.
+     * 自定义字符集, 传入的 `value` 的字符串表示形式的每个字符都**必须**被包含在该字符集中.
      *
-     * @default 从 {@link digitToChar} 中获取.
+     * @default 如果 `value` 为字符串, 则设置为 `value` 的去重字符集. 否则设置为 "0123456789".
      */
     alphabet: {
       type: String,
@@ -307,23 +338,6 @@ export const DurationPartMillisecondToType = {
   7889400000: DurationPartType.Quarter,
   31557600000: DurationPartType.Year,
 } as const;
-
-export interface GroupAnimationOptions {
-  easing?: PartDigitValueOrGetter<AnimationOptions["easing"]>;
-  delay?: PartDigitValueOrGetter<AnimationOptions["delay"]>;
-  iterations?: PartDigitValueOrGetter<AnimationOptions["iterations"]>;
-  duration?: PartDigitValueOrGetter<AnimationOptions["duration"]>;
-  endDelay?: PartDigitValueOrGetter<AnimationOptions["endDelay"]>;
-  keyframe?: PartDigitValueOrGetter<AnimationOptions["keyframe"]>;
-}
-export interface AnimationOptions {
-  easing?: KeyframeEffectOptions["easing"];
-  delay?: KeyframeEffectOptions["delay"];
-  iterations?: KeyframeEffectOptions["iterations"];
-  duration?: KeyframeEffectOptions["duration"];
-  endDelay?: KeyframeEffectOptions["endDelay"];
-  keyframe?: PropertyIndexedKeyframes;
-}
 
 export const VueToCounterPropsReturn = VueToCounterProps();
 export const VueToCounterDatetimePropsReturn = VueToCounterDatetimeProps();

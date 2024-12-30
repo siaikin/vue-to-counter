@@ -76,19 +76,31 @@ const digitToChar = ref([
   "鱼人先知",
 ]);
 const animationOptions = ref({
-  easing:
-    "linear(0, 0.004, 0.016, 0.035, 0.063, 0.098, 0.141 13.6%, 0.25, 0.391, 0.563, 0.765, 1, 0.891 40.9%, 0.848, 0.813, 0.785, 0.766, 0.754, 0.75, 0.754, 0.766, 0.785, 0.813, 0.848, 0.891 68.2%, 1 72.7%, 0.973, 0.953, 0.941, 0.938, 0.941, 0.953, 0.973, 1, 0.988, 0.984, 0.988, 1)",
-  keyframe: ({ value, direction }) => {
-    const from = direction === "up" ? Math.max(...value) : Math.min(...value);
-    const to = direction === "up" ? Math.min(...value) : Math.max(...value);
-    return {
-      transform: [
-        `rotateX(-${from * (360 / 69)}deg)`,
-        `rotateX(-${to * (360 / 69)}deg)`,
-      ],
-    };
+  ease: (x) => {
+    const n1 = 7.5625;
+    const d1 = 2.75;
+
+    if (x < 1 / d1) {
+      return n1 * x * x;
+    } else if (x < 2 / d1) {
+      return n1 * (x -= 1.5 / d1) * x + 0.75;
+    } else if (x < 2.5 / d1) {
+      return n1 * (x -= 2.25 / d1) * x + 0.9375;
+    } else {
+      return n1 * (x -= 2.625 / d1) * x + 0.984375;
+    }
   },
 });
+const keyframes = ({ value, direction }) => {
+  const from = direction === "up" ? Math.max(...value) : Math.min(...value);
+  const to = direction === "up" ? Math.min(...value) : Math.max(...value);
+  return {
+    transform: [
+      `rotateX(-${from * (360 / 69)}deg)`,
+      `rotateX(-${to * (360 / 69)}deg)`,
+    ],
+  };
+};
 
 const value = ref(0);
 
@@ -130,10 +142,11 @@ onMounted(() => {
         :value="[value]"
         :digit-to-char="digitToChar"
         :min-places="[0, 0]"
-        :duration="2000"
+        :duration="2"
         color="white"
         :part-data-options="partDataOptions"
         :animation-options="animationOptions"
+        :keyframes="keyframes"
         :digit-style="
           ({ data }) =>
             data.map((partData) =>

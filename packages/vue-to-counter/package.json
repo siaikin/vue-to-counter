@@ -11,13 +11,12 @@
     "type-check": "vue-tsc -b",
     "preview": "vite preview",
     "prepare": "husky install",
-    "docs:dev": "vitepress dev",
-    "docs:build": "vitepress build",
-    "docs:preview": "vitepress preview",
+    "component-meta": "tsx ./scripts/build-component-meta.ts",
     "prepublishOnly": "npm run build"
   },
   "files": [
     "dist",
+    "component-meta",
     "typings/global.d.ts"
   ],
   "dependencies": {
@@ -25,9 +24,10 @@
     "@types/node": "^22.9.3",
     "@vueuse/core": "^11.3.0",
     "d3-array": "^3.2.4",
-    "d3-interpolate": "^3.0.1",
     "date-fns": "^4.1.0",
     "lodash-es": "^4.17.21",
+    "mitt": "^3.0.1",
+    "motion": "^11.15.0",
     "uuid": "^11.0.3",
     "vite-plugin-dts": "^4.3.0",
     "vue": "^3.5.12"
@@ -43,14 +43,17 @@
     "@vitejs/plugin-vue": "^5.1.4",
     "@vitejs/plugin-vue-jsx": "^4.1.1",
     "autoprefixer": "^10.4.20",
+    "glob": "^11.0.0",
     "globals": "^15.12.0",
     "postcss": "^8.4.49",
     "prettier": "3.3.3",
     "sass-embedded": "^1.81.0",
     "tailwindcss": "^3.4.15",
+    "tsx": "^4.19.2",
     "typescript": "~5.5.4",
     "vite": "^5.4.10",
     "vitepress": "^1.5.0",
+    "vue-component-meta": "^2.1.10",
     "vue-tsc": "^2.0.29"
   },
   "publishConfig": {

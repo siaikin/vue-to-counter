@@ -1,17 +1,15 @@
 <script setup>
 import { ref } from "vue";
-//todo BuildInBigintAdapter sampleCount
-import { DecimalJsAdapter } from "vue-to-counter";
 
 const string = ref("Hello, World!");
-const numberAdapter = DecimalJsAdapter();
 
 const strings = [
   "Hello, World!",
   "你好，世界！",
   "こんにちは、世界！",
   "안녕하세요, 세계!",
-  "Bonjour, le monde!",
+  // 太长了
+  // "Bonjour, le monde!",
   "Hallo, Welt!",
   "Ciao, mondo!",
   "Olá, mundo!",
@@ -33,11 +31,7 @@ function switchString() {
 
 <template>
   <div class="text-center">
-    <vue-to-counter-string
-      :value="string"
-      color="black"
-      :number-adapter="numberAdapter"
-    />
+    <vue-to-counter-string :value="string" />
   </div>
   <hr />
   <div class="flex gap-4">

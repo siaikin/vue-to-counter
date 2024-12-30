@@ -8,21 +8,26 @@ import {
   useSlots,
   watchEffect,
   computed,
+  watch,
+  toRaw,
 } from "vue";
 import {
-  AnimationOptions,
-  GroupAnimationOptions,
   PartData,
+  PartDigitValueOrGetter,
   PartDigitCellValueOrGetter,
+  VueToCounterBaseEmits,
 } from "./types";
 import { useResizeObserver } from "@vueuse/core";
-import CounterRollerPart from "./CounterRollerPart.vue";
+import CounterRollerPartDigit from "./CounterRollerPartDigit.vue";
 import { debounce, isArray } from "lodash-es";
 import { useRollerPartTest } from "./composables/use-roller-part-test";
 import {
   extractPartDigitCellOption,
   extractPartDigitOption,
 } from "./utils/extract-group-option";
+import type { DynamicAnimationOptions } from "framer-motion/dom";
+import type { DOMKeyframesDefinition } from "motion";
+import { useEventBus } from "./composables/use-event-bus";
 
 const props = defineProps({
   container: {
@@ -41,19 +46,32 @@ const props = defineProps({
     type: String,
     required: true,
   },
-  duration: {
-    type: Number,
-    required: true,
-  },
   direction: {
     type: String as PropType<"up" | "down">,
     required: true,
   },
   animationOptions: {
-    type: Object as PropType<Partial<GroupAnimationOptions>>,
+    type: [Object, Array, Function] as PropType<
+      PartDigitValueOrGetter<DynamicAnimationOptions>
+    >,
     default: () => ({}),
   },
-  digitStyle: {
+  keyframes: {
+    type: [Object, Array, Function] as PropType<
+      PartDigitValueOrGetter<DOMKeyframesDefinition>
+    >,
+    default: () => {
+      const result: PartDigitValueOrGetter<DOMKeyframesDefinition> = ({
+        direction,
+      }) =>
+        ({
+          up: { transform: ["translateY(0)", "translateY(-100%)"] },
+          down: { transform: ["translateY(0)", "translateY(100%)"] },
+        })[direction];
+      return result;
+    },
+  },
+  cellStyle: {
     type: [Object, Array, Function] as PropType<
       PartDigitCellValueOrGetter<CSSProperties>
     >,
@@ -66,9 +84,12 @@ const {
   color,
   container,
   animationOptions,
+  keyframes,
   direction,
-  digitStyle,
+  cellStyle,
 } = toRefs(props);
+
+const { emit } = useEventBus<typeof VueToCounterBaseEmits>();
 
 const containerRect = ref<DOMRect>();
 const updateContainerRect = debounce(
@@ -157,47 +178,69 @@ watchEffect(() => {
 
 const slots = useSlots();
 
-const rollerOptions = computed(() => ({
+const extractOptionContext = computed(() => ({
   testResults: testResults.value,
   direction: direction.value,
   value: value.value,
   data: data.value,
 }));
 const { testResults } = useRollerPartTest(data, direction);
-const rollerPartAnimationOptions = computed(() => {
-  const { easing, delay, endDelay, iterations, duration, keyframe } =
-    animationOptions.value;
-  const rollerOptionsValue = rollerOptions.value;
 
-  return {
-    easing: extractPartDigitOption(easing, rollerOptionsValue),
-    delay: extractPartDigitOption(delay, rollerOptionsValue),
-    iterations: extractPartDigitOption(iterations, rollerOptionsValue),
-    duration: extractPartDigitOption(duration, rollerOptionsValue),
-    endDelay: extractPartDigitOption(endDelay, rollerOptionsValue),
-    keyframe: extractPartDigitOption(
-      keyframe,
-      rollerOptionsValue
-    ) as AnimationOptions["keyframe"][][],
-  };
-});
-
-function getAnimationOptions(partIndex: number, digitIndex: number) {
-  const rollerPartAnimationOptionsValue = rollerPartAnimationOptions.value;
-  return {
-    easing: rollerPartAnimationOptionsValue.easing[partIndex][digitIndex],
-    delay: rollerPartAnimationOptionsValue.delay[partIndex][digitIndex],
-    iterations:
-      rollerPartAnimationOptionsValue.iterations[partIndex][digitIndex],
-    duration: rollerPartAnimationOptionsValue.duration[partIndex][digitIndex],
-    endDelay: rollerPartAnimationOptionsValue.endDelay[partIndex][digitIndex],
-    keyframe: rollerPartAnimationOptionsValue.keyframe[partIndex][digitIndex],
-  };
-}
-
-const rollerPartStyle = computed(() =>
-  extractPartDigitCellOption(digitStyle.value, rollerOptions.value)
+const partDigitAnimationOptions = computed(
+  () =>
+    extractPartDigitOption(
+      animationOptions.value,
+      extractOptionContext.value
+    ) as DynamicAnimationOptions[][]
 );
+const partDigitKeyframes = computed(
+  () =>
+    extractPartDigitOption(
+      keyframes.value,
+      extractOptionContext.value
+    ) as DOMKeyframesDefinition[][]
+);
+
+const rollerCellStyle = computed(
+  () =>
+    extractPartDigitCellOption(
+      cellStyle.value,
+      extractOptionContext.value
+    ) as CSSProperties[][][]
+);
+
+// 处理动画开始/结束事件
+watch(
+  testResults,
+  (testResultsValue) => {
+    for (const { animate } of testResultsValue.flat()) {
+      if (!animate) continue;
+
+      emit("rollAnimationStart", {
+        testResults: toRaw(testResultsValue),
+        data: toRaw(data.value),
+        direction: direction.value,
+      });
+      animatedDigitCount.value = 0;
+      break;
+    }
+  },
+  { immediate: true }
+);
+const animateDigitTotal = computed(
+  () => testResults.value.flat().filter(({ animate }) => animate).length
+);
+const animatedDigitCount = ref(0);
+watch([animatedDigitCount, animateDigitTotal], ([animated, total]) => {
+  if (animated < total) return;
+
+  emit("rollAnimationEnd", {
+    testResults: toRaw(testResults.value),
+    data: toRaw(data.value),
+    direction: direction.value,
+  });
+});
+const handleAnimationEnd = () => animatedDigitCount.value++;
 </script>
 
 <script lang="ts">
@@ -217,7 +260,11 @@ export default {
     <slot name="prefix" />
   </span>
   <span class="roller-parts">
-    <template v-for="(partData, partIndex) in data" :key="partIndex">
+    <span
+      class="roller-part"
+      v-for="(partData, partIndex) in data"
+      :key="partIndex"
+    >
       <span
         v-for="(digit, digitIndex) in partData.digits ?? []"
         ref="backgroundClippedParts"
@@ -225,9 +272,8 @@ export default {
         :key="partData.digits.length - digitIndex"
         :data-part-id="`part-${partIndex}-${partData.digits.length - digitIndex}`"
       >
-        <CounterRollerPart
+        <CounterRollerPartDigit
           :part-id="`part-${partIndex}-${partData.digits.length - digitIndex}`"
-          :duration="duration"
           :text-style="
             backgroundClippedPartStyleMap.get(
               `part-${partIndex}-${partData.digits.length - digitIndex}`
@@ -236,8 +282,10 @@ export default {
           :direction="direction"
           :digits="digit"
           :test-result="testResults[partIndex][digitIndex]"
-          :animation-options="getAnimationOptions(partIndex, digitIndex)"
-          :digit-style="rollerPartStyle[partIndex][digitIndex]"
+          :animation-options="partDigitAnimationOptions[partIndex][digitIndex]"
+          :keyframes="partDigitKeyframes[partIndex][digitIndex]"
+          :cell-style="rollerCellStyle[partIndex][digitIndex]"
+          @digit-animation-end="handleAnimationEnd"
         />
       </span>
       <span
@@ -249,7 +297,7 @@ export default {
       >
         <slot name="partSuffix" :partData="partData" :index="partIndex" />
       </span>
-    </template>
+    </span>
   </span>
   <span
     ref="backgroundClippedPartSuffix"

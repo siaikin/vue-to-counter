@@ -108,7 +108,7 @@ function processPartData(
       const tailNumber =
         partData[directionValue === "down" ? 0 : partData.length - 1];
 
-      const [minIntegerPlaces = 2, minDecimalPlaces = 0] = minPlaces;
+      const [minIntegerPlaces = 1, minDecimalPlaces = 0] = minPlaces;
 
       const numberParts = sampleToString(tailNumber).split(decimalSeparator);
       const integerPlaces = Math.max(numberParts[0].length, minIntegerPlaces);

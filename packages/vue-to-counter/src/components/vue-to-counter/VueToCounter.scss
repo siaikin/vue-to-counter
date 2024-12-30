@@ -13,21 +13,25 @@
   .roller-parts {
     @apply flex-auto inline-flex;
 
-    .roller-part__wrapper {
-      /*
-        增加行高避免具有下降部分的字符(如: g, j, p, q, y)的下降部分被截断
-        @see https://en.wikipedia.org/wiki/Descender
-        @see https://tailwindcss.com/docs/line-height
-
-        @deprecated 行高样式由外部设置, 提供更高的自由度
-      */
-      //@apply inline-block leading-tight;
-
-      @apply flex-none inline-block whitespace-nowrap;
-    }
-
     .roller-part {
-      @apply inline-block relative;
+      @apply whitespace-nowrap;
+
+      .roller-part__wrapper {
+        /*
+          增加行高避免具有下降部分的字符(如: g, j, p, q, y)的下降部分被截断
+          @see https://en.wikipedia.org/wiki/Descender
+          @see https://tailwindcss.com/docs/line-height
+
+          @deprecated 行高样式由外部设置, 提供更高的自由度
+        */
+        //@apply inline-block leading-tight;
+
+        @apply flex-none inline-block;
+
+        .roller-part-digit {
+          @apply inline-block relative;
+        }
+      }
     }
 
     .roller-part__unit {
@@ -50,7 +54,7 @@
     }
 
     .roll-list__shadow {
-      @apply absolute -z-10 invisible inline-flex flex-col text-nowrap;
+      @apply absolute -z-10 invisible inline-flex flex-col whitespace-nowrap;
     }
 
     .roll-item {

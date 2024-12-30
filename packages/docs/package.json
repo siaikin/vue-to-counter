@@ -4,6 +4,7 @@
   "main": "index.js",
   "devDependencies": {
     "autoprefixer": "^10.4.20",
+    "glob": "^11.0.0",
     "postcss": "^8.4.49",
     "tailwindcss": "^3.4.15",
     "vitepress": "^1.5.0"
@@ -12,12 +13,14 @@
   "scripts": {
     "docs:dev": "vitepress dev",
     "docs:build": "vitepress build",
-    "docs:preview": "vitepress preview"
+    "docs:preview": "vitepress preview",
+    "docs:typedoc": "typedoc"
   },
   "author": "",
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "markdown-it-footnote": "^4.0.0",
     "vue": "^3.5.13"
   }
 }

@@ -11,7 +11,12 @@ const BuildInBigintAdapter: () => NumberAdapter<bigint> = () => ({
     return a - b;
   },
   mul(a, b) {
-    return a * b;
+    if (typeof b === "bigint") return a * b;
+
+    // b 是 number 时
+    const decimalPlaces = b.toString().split(".")[1]?.length || 0;
+    const base = 10 ** decimalPlaces;
+    return (a * BigInt(b * base)) / BigInt(base);
   },
   div(a, b) {
     return a / b;

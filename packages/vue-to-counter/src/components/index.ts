@@ -21,5 +21,4 @@ function installToVue<T extends Component>(
   };
 }
 
-export * from "./types";
-export * from "./components";
+export * from "./vue-to-counter";

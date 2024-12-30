@@ -14,7 +14,7 @@ function switchNumber() {
   </div>
   <hr />
   <div class="flex gap-4">
-    <input class="border border-solid p-1" v-model="number" type="number" />
+    <input class="border border-solid p-1" v-model="number" />
     <button class="border border-solid p-1" @click="switchNumber">切换</button>
   </div>
 </template>

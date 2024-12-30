@@ -4,7 +4,7 @@ import { VueToCounterNumber } from "./components/vue-to-counter";
 
 const debug = ref(true);
 const value = ref(10);
-const duration = ref(1000);
+const duration = ref(1);
 const color = ref(
   "linear-gradient(135deg, rgba(30,87,153,0) 0%,rgba(30,87,153,0.8) 15%,rgba(30,87,153,1) 19%,rgba(30,87,153,1) 20%,rgba(41,137,216,1) 50%,rgba(30,87,153,1) 80%,rgba(30,87,153,1) 81%,rgba(30,87,153,0.8) 85%,rgba(30,87,153,0) 100%)"
 );
@@ -20,12 +20,12 @@ const minPlaces = ref<[number, number]>([0, 0]);
     <VueToCounterNumber
       class="text-7xl bg-gray-300"
       :value="value"
-      :duration="duration"
       :debug="debug"
       :color="color"
       :locale="locale"
       :locale-number="localeNumber ? {} : undefined"
       :min-places="minPlaces"
+      :animation-options="{ duration }"
     >
       <template #prefix>{{ prefix }}</template>
       <template #suffix>{{ suffix }}</template>
@@ -44,7 +44,7 @@ const minPlaces = ref<[number, number]>([0, 0]);
         </label>
         <label class="p-1">
           duration:
-          <input type="number" v-model="duration" :step="100" :min="0" />
+          <input type="number" v-model="duration" :step="0.1" :min="0" />
         </label>
       </fieldset>
       <fieldset class="flex flex-col border">

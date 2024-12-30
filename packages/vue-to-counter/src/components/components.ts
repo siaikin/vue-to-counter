@@ -1,1 +1,1 @@
-export * from "./vue-to-counter";
+export * from "./vue-to-counter/components";

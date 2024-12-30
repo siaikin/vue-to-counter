@@ -17,11 +17,11 @@ export interface RollerPartTestResult {
    */
   index: number;
   /**
-   * 所在 {@link PartData} 的索引
+   * 所在 `part` 的索引
    */
   partIndex: number;
   /**
-   * 所在 {@link PartDataDigit} 的索引
+   * 所在 `digit` 的索引
    */
   digitIndex: number;
 }

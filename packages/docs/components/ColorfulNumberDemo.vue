@@ -53,7 +53,7 @@ const color = ref(
             value="url('https://picsum.photos/400/300')"
             v-model="color"
           />
-          CSS 图片属性
+          CSS 图片属性（加载图片时会有一段空白时间）
         </label>
       </li>
       <li>

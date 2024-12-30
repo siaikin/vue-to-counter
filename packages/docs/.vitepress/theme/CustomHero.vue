@@ -2,7 +2,7 @@
 import { type Ref, inject } from "vue";
 import type { DefaultTheme } from "vitepress/theme";
 import VPButton from "vitepress/dist/client/theme-default/components/VPButton.vue";
-import VPImage from "vitepress/dist/client/theme-default/components/VPImage.vue";
+import VueToCounterLogo from "../../components/VueToCounterLogo.vue";
 
 export interface HeroAction {
   theme?: "brand" | "alt";
@@ -37,14 +37,16 @@ const heroImageSlotExists = inject("hero-image-slot-exists") as Ref<boolean>;
               :value="name"
               :initial-value="name.replace(/./g, ' ')"
               :part-data-options="{ sampleCount: 2 }"
-              :animation-options="{
-                delay: ({ testResults }) => {
-                  let delay = 0;
+              :animation-options="
+                ({ testResults }) => {
+                  let count = 0;
                   return testResults.map((part) =>
-                    part.map((digit) => digit.animate && delay++ * 100)
+                    part.map((digit) => ({
+                      delay: digit.animate ? count++ * 0.1 : 0,
+                    }))
                   );
-                },
-              }"
+                }
+              "
             />
           </h1>
           <p v-if="text" v-html="text" class="text"></p>
@@ -68,11 +70,12 @@ const heroImageSlotExists = inject("hero-image-slot-exists") as Ref<boolean>;
         <slot name="home-hero-actions-after" />
       </div>
 
-      <div v-if="image || heroImageSlotExists" class="image">
+      <div class="image">
         <div class="image-container">
           <div class="image-bg" />
           <slot name="home-hero-image">
-            <VPImage v-if="image" class="image-src" :image="image" />
+            <VueToCounterLogo class="image-src" />
+            <!--            <VPImage v-if="image" class="image-src" :image="image" />-->
           </slot>
         </div>
       </div>

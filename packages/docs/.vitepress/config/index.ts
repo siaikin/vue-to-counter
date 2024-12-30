@@ -1,5 +1,6 @@
 import { defineConfig } from "vitepress";
 import { fileURLToPath } from "node:url";
+import Footnote from "markdown-it-footnote";
 import zh from "./zh";
 import en from "./en";
 
@@ -18,9 +19,15 @@ export default defineConfig({
     en: { label: "English", ...en },
   },
   themeConfig: {
+    logo: "../logo.svg",
     socialLinks: [
       { icon: "github", link: "https://github.com/siaikin/vue-to-counter" },
     ],
+  },
+  markdown: {
+    config: (md) => {
+      md.use(Footnote);
+    },
   },
   vite: {
     resolve: {

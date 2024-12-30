@@ -4,6 +4,9 @@ import {
   toRef,
   toValue,
   ExtractPropTypes,
+  ref,
+  onMounted,
+  watch,
 } from "vue";
 import { iso8601Duration } from "./utils/iso8601-duration";
 import { durationObject } from "./utils/duration";
@@ -12,9 +15,10 @@ import { useLocalizedDateTimeFields } from "./composables/use-localized-date-tim
 import { isDate, toDate } from "date-fns";
 import { useLocale } from "./composables/use-locale";
 import { duration as genDuration } from "./utils/duration";
-import { toRefs } from "@vueuse/core";
+import { reactiveOmit, toRefs } from "@vueuse/core";
 import {
   DurationPartMillisecond,
+  VueToCounterBaseEmits,
   VueToCounterBaseSlots,
   VueToCounterDatetimeDurationProps,
   VueToCounterPropsReturn,
@@ -23,22 +27,32 @@ import VueToCounter from "./VueToCounter";
 import { PartDataOptions } from "./composables/use-part-data";
 
 import "./VueToCounterDatetimeDuration.scss";
+import { clone } from "lodash-es";
 
 export default defineComponent({
   name: "VueToCounterDatetimeDuration",
   props: VueToCounterDatetimeDurationProps(),
   slots: VueToCounterBaseSlots,
+  emits: VueToCounterBaseEmits,
   setup: (props, { attrs, slots }) => {
-    const { precision } = toRefs(props);
+    const { precision, initialValue } = toRefs(props);
 
     const locale = useLocale(toRef(props, "locale"));
 
-    const from = computed(() =>
-      isDate(props.value[0]) ? props.value[0] : toDate(props.value[0])
-    );
-    const to = computed(() =>
-      isDate(props.value[1]) ? props.value[1] : toDate(props.value[1])
-    );
+    const value = ref(clone(initialValue.value ?? props.value));
+    onMounted(() => initialValue.value && (value.value = clone(props.value)));
+    watch(toRef(props, "value"), (v) => (value.value = clone(v)), {
+      deep: true,
+    });
+
+    const from = computed(() => {
+      const _value = value.value;
+      return isDate(_value[0]) ? _value[0] : toDate(_value[0]);
+    });
+    const to = computed(() => {
+      const _value = value.value;
+      return isDate(_value[1]) ? _value[1] : toDate(_value[1]);
+    });
 
     const { min, availableDurationParts } = usePrecision(precision);
 
@@ -120,9 +134,13 @@ export default defineComponent({
       );
     });
 
+    const vueToCounterProps = reactiveOmit(props, [
+      "precision",
+      "initialValue",
+    ]);
     return () => (
       <VueToCounter
-        {...(props as unknown as ExtractPropTypes<
+        {...(vueToCounterProps as unknown as ExtractPropTypes<
           typeof VueToCounterPropsReturn
         >)}
         {...{

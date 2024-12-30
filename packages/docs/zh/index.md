@@ -4,7 +4,8 @@ layout: home
 
 hero:
   name: "Vue To Counter"
-  text: "像老虎机一样的滚动字符串，数字和时间"
+  text: "使数值变化更加生动自然"
+  #    text: "Make the value change more vivid and natural"
   actions:
     - theme: brand
       text: VueToCounter 是什么？

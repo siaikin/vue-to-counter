@@ -1,6 +1,7 @@
 import { defineComponent, computed, ref, watch, ExtractPropTypes } from "vue";
 import { toRefs, useMounted } from "@vueuse/core";
 import {
+  VueToCounterBaseEmits,
   VueToCounterBaseSlots,
   VueToCounterPropsReturn,
   VueToCounterStringProps,
@@ -19,6 +20,7 @@ export default defineComponent({
   name: "VueToCounterNumber",
   props: VueToCounterStringProps(),
   slots: VueToCounterBaseSlots,
+  emits: VueToCounterBaseEmits,
   setup: (props, { attrs, slots }) => {
     const { stringAdapter } = toRefs(props);
 

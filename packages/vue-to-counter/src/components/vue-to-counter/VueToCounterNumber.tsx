@@ -1,26 +1,27 @@
 import { defineComponent, computed, toRef, ExtractPropTypes } from "vue";
 import { useLocale } from "./composables/use-locale";
-import { toRefs } from "@vueuse/core";
+import { reactiveOmit, toRefs } from "@vueuse/core";
 import {
+  VueToCounterBaseEmits,
   VueToCounterBaseSlots,
   VueToCounterNumberProps,
   VueToCounterPropsReturn,
 } from "./types";
 import VueToCounter from "./VueToCounter";
-import { isBoolean, isString } from "lodash-es";
+import { isBoolean } from "lodash-es";
+import { useEventBus } from "./composables/use-event-bus";
 
 export default defineComponent({
   name: "VueToCounterNumber",
   props: VueToCounterNumberProps(),
   slots: VueToCounterBaseSlots,
-  setup: (props, { attrs, slots }) => {
-    const { localeNumber } = toRefs(props);
+  emits: VueToCounterBaseEmits,
+  setup: (props, { attrs, slots, emit }) => {
+    const { localeNumber, numberAdapter } = toRefs(props);
 
     const locale = useLocale(toRef(props, "locale"));
 
-    const value = computed(() =>
-      isString(props.value) ? Number.parseFloat(props.value) : props.value
-    );
+    const value = computed(() => numberAdapter.value.create(props.value));
 
     const useLocalizedNumber = computed(() => !!localeNumber.value);
     const intlNumberFormat = computed(
@@ -45,12 +46,19 @@ export default defineComponent({
       sampleToString: (value) =>
         useLocalizedNumber.value
           ? intlNumberFormat.value.format(value)
-          : value.toString(10),
+          : numberAdapter.value.toString(value),
     }));
+
+    const vueToCounterProps = reactiveOmit(props, ["localeNumber"]);
+
+    // Event Bus
+    {
+      useEventBus<typeof VueToCounterBaseEmits>(undefined, emit);
+    }
 
     return () => (
       <VueToCounter
-        {...props}
+        {...vueToCounterProps}
         {...attrs}
         value={value.value}
         partDataOptions={partDataOptions.value}

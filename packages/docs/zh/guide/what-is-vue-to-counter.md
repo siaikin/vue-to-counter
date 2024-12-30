@@ -19,11 +19,9 @@ nextMonth.setHours(0, 0, 0, 0);
 
 VueToCounter 是一个基于 Vue 3 用于展示**数值变化**的组件，它可以在数值变化时增加动画效果。
 
-::: tip
-懒得看？跳到[快速开始](getting-started)。
-:::
+<div class="tip custom-block"><p>只是想尝试一下？跳到<a href="./getting-started.html">快速开始</a>。</p></div>
 
-# 使用场景
+## 使用场景
 
 - **站点首屏**
 
@@ -31,13 +29,19 @@ VueToCounter 是一个基于 Vue 3 用于展示**数值变化**的组件，它�
 
 - **数据展示**
 
-  你可以使用 VueToCounter 来展示一些实时数据，统计数据等。比如，你可以使用它来展示:
+  VueToCounter 很适合用来展示实时数据，统计数据等。比如，你可以使用它来展示:
 
-  - 今天已有 <vue-to-counter-number class="font-mono font-bold" :value="userCount" suffix="人" color="black" :locale="site.lang" locale-number /> 访问了你的网站
-  - 距离下个月还有 <vue-to-counter-datetime-duration class="font-mono font-bold" :value="[now, nextMonth]" color="black" :locale="site.lang" />
+  - 今天已有 <vue-to-counter-number class="font-mono font-bold" :value="userCount" suffix="人" :locale="site.lang" locale-number /> 访问了你的网站。 [->](/guide/examples/simple-usage#使数字滚动)
+  - 距离下个月还有 <vue-to-counter-datetime-duration class="font-mono font-bold" :value="[now, nextMonth]" :locale="site.lang" /> [->](/guide/examples/simple-usage#倒计时效果)
 
   ::: tip
   VueToCounter 还通过 [Intl](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl) 支持国际化。你可以在右上角切换语言来查看效果。
   :::
 
-[//]: # '  * 你的网站已经运行了 <vue-to-counter-number class="font-mono font-bold" :value="userCount" suffix="小时" color="black" /> 了'
+[//]: # '  * 你的网站已经运行了 <vue-to-counter-number class="font-mono font-bold" :value="userCount" suffix="小时" /> 了'
+
+## 性能
+
+VueToCounter 在内部使用 [Web Animation API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Animations_API) 来实现动画效果，因此它的性能表现非常好。
+
+> 实际上我们使用的是 [Motion](https://motion.dev/)，它在内部使用 Web Animation API。

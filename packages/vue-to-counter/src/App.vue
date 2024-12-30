@@ -3,18 +3,10 @@ import { ref } from "vue";
 
 const debug = ref(true);
 const value = ref(0);
-// onMounted(() => {
-//   setInterval(() => {
-//     value.value = 0;
-//     setTimeout(() => (value.value = 60));
-//   }, 1000);
-// });
-const duration = ref(1000);
 const color = ref(
   "linear-gradient(135deg, rgba(30,87,153,0) 0%,rgba(30,87,153,0.8) 15%,rgba(30,87,153,1) 19%,rgba(30,87,153,1) 20%,rgba(41,137,216,1) 50%,rgba(30,87,153,1) 80%,rgba(30,87,153,1) 81%,rgba(30,87,153,0.8) 85%,rgba(30,87,153,0) 100%)"
 );
 const locale = ref("zh-CN");
-const localeNumber = ref(true);
 const prefix = ref("Remaining");
 const suffix = ref("!");
 const minPlaces = ref<[number, number]>([0, 0]);
@@ -90,8 +82,22 @@ const digitToChar = ref([
   "鱼人先知",
 ]);
 const animationOptions = ref({
-  easing:
-    "linear(0, 0.004, 0.016, 0.035, 0.063, 0.098, 0.141 13.6%, 0.25, 0.391, 0.563, 0.765, 1, 0.891 40.9%, 0.848, 0.813, 0.785, 0.766, 0.754, 0.75, 0.754, 0.766, 0.785, 0.813, 0.848, 0.891 68.2%, 1 72.7%, 0.973, 0.953, 0.941, 0.938, 0.941, 0.953, 0.973, 1, 0.988, 0.984, 0.988, 1)",
+  duration: 1,
+  // ease: "linear(0, 0.004, 0.016, 0.035, 0.063, 0.098, 0.141 13.6%, 0.25, 0.391, 0.563, 0.765, 1, 0.891 40.9%, 0.848, 0.813, 0.785, 0.766, 0.754, 0.75, 0.754, 0.766, 0.785, 0.813, 0.848, 0.891 68.2%, 1 72.7%, 0.973, 0.953, 0.941, 0.938, 0.941, 0.953, 0.973, 1, 0.988, 0.984, 0.988, 1)",
+  ease: (x: number) => {
+    const n1 = 7.5625;
+    const d1 = 2.75;
+
+    if (x < 1 / d1) {
+      return n1 * x * x;
+    } else if (x < 2 / d1) {
+      return n1 * (x -= 1.5 / d1) * x + 0.75;
+    } else if (x < 2.5 / d1) {
+      return n1 * (x -= 2.25 / d1) * x + 0.9375;
+    } else {
+      return n1 * (x -= 2.625 / d1) * x + 0.984375;
+    }
+  },
 });
 </script>
 
@@ -100,7 +106,7 @@ const animationOptions = ref({
     <VueToCounter
       class="text-2xl bg-gray-300"
       :value="[value]"
-      :duration="duration"
+      :duration="animationOptions.duration"
       :debug="debug"
       :color="color"
       :locale="locale"
@@ -126,7 +132,12 @@ const animationOptions = ref({
         </label>
         <label class="p-1">
           duration:
-          <input type="number" v-model="duration" :step="100" :min="0" />
+          <input
+            type="number"
+            v-model="animationOptions.duration"
+            :step="0.1"
+            :min="0"
+          />
         </label>
       </fieldset>
       <fieldset class="flex flex-col border">
@@ -173,10 +184,6 @@ const animationOptions = ref({
             <option value="de-DE">de-DE</option>
             <option value="fr-FR">fr-FR</option>
           </select>
-        </label>
-        <label class="p-1">
-          use locale number:
-          <input type="checkbox" v-model="localeNumber" />
         </label>
       </fieldset>
       <fieldset class="flex flex-col border">
