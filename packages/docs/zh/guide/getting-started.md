@@ -29,11 +29,11 @@ $ yarn add vue-to-counter
 ::: tip 注意
 VueToCounter 目前有两个可选的依赖项，考虑到它们的体积较大，所以默认情况下不会被安装。你可以根据需要手动安装它们。
 
-- **decimal.js**: Decimal.js 提供了近乎无限制的精度，用于处理大数/高精度浮点数计算。[什么时候需要使用它](/)
+- **decimal.js**: Decimal.js 提供了近乎无限制的精度，用于处理大数/高精度浮点数计算。[什么时候需要使用它](optional-dependencies.md#字符长度限制)
 
   ![npm bundle size](https://img.shields.io/bundlephobia/min/decimal.js?style=flat-square)
 
-- **grapheme-splitter**: grapheme-splitter 可以正确地分割包含 emoji 的字符串。[什么时候需要使用它](/)
+- **grapheme-splitter**: grapheme-splitter 可以正确地分割包含 emoji 的字符串。[什么时候需要使用它](optional-dependencies.md#支持-emoji-分词)
 
   ![npm bundle size](https://img.shields.io/bundlephobia/min/grapheme-splitter?style=flat-square)
   :::

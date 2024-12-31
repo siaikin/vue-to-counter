@@ -1,16 +1,12 @@
 <script setup>
 import { ref, watch } from "vue";
-import {
-  BuildInBigintAdapter,
-  BuildInNumberAdapter,
-  DecimalJsAdapter,
-} from "vue-to-counter";
+import { BuildInNumberAdapter, DecimalJsAdapter } from "vue-to-counter";
 
 const number = ref(Number.MAX_SAFE_INTEGER.toString(10));
 
 const adapters = [
   { label: "BuildInNumberAdapter", adapter: BuildInNumberAdapter() },
-  { label: "BuildInBigintAdapter", adapter: BuildInBigintAdapter() },
+  // { label: "BuildInBigintAdapter", adapter: BuildInBigintAdapter() },
   { label: "DecimalJsAdapter", adapter: DecimalJsAdapter() },
 ];
 const adapterIndex = ref(0);
@@ -59,9 +55,6 @@ function handleInput(e) {
       @input="handleInput"
       :value="number"
     />
-    <button class="self-start border border-solid p-1" @click="switchNumber">
-      切换
-    </button>
     <select
       v-model="adapterIndex"
       class="self-start border border-solid p-1 appearance-auto"

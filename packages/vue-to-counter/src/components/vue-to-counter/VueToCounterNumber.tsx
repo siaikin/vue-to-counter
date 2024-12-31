@@ -22,6 +22,11 @@ export default defineComponent({
     const locale = useLocale(toRef(props, "locale"));
 
     const value = computed(() => numberAdapter.value.create(props.value));
+    const initialValue = computed(() =>
+      props.initialValue
+        ? numberAdapter.value.create(props.initialValue)
+        : undefined
+    );
 
     const useLocalizedNumber = computed(() => !!localeNumber.value);
     const intlNumberFormat = computed(
@@ -49,7 +54,11 @@ export default defineComponent({
           : numberAdapter.value.toString(value),
     }));
 
-    const vueToCounterProps = reactiveOmit(props, ["localeNumber"]);
+    const vueToCounterProps = reactiveOmit(props, [
+      "localeNumber",
+      "value",
+      "initialValue",
+    ]);
 
     // Event Bus
     {
@@ -61,6 +70,7 @@ export default defineComponent({
         {...vueToCounterProps}
         {...attrs}
         value={value.value}
+        initialValue={initialValue.value}
         partDataOptions={partDataOptions.value}
       >
         {{ ...slots }}

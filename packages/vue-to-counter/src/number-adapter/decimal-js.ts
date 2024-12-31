@@ -6,10 +6,8 @@ const DecimalJsAdapter: (config?: Decimal.Config) => NumberAdapter<Decimal> = (
 ) => {
   const InnerDecimal = Decimal.clone(config);
   return {
-    create(value: string | number | bigint): Decimal {
-      return new InnerDecimal(
-        typeof value === "bigint" ? value.toString(10) : value
-      );
+    create(value: string | number): Decimal {
+      return new InnerDecimal(value);
     },
     add(a, b) {
       return a.plus(b);

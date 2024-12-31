@@ -1,7 +1,7 @@
 import { NumberAdapter } from "./types";
 
 const BuildInNumberAdapter: () => NumberAdapter<number> = () => ({
-  create(value: string | number | bigint): number {
+  create(value: string | number): number {
     return Number(value);
   },
   add(a, b) {

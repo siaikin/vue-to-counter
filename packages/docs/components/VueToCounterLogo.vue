@@ -54,7 +54,7 @@ const keyframes = ({ testResults, direction }) => {
       :part-data-options="{ sampleCount: 2 }"
       :animation-options="animationOptions"
       :keyframes="keyframes"
-      :digit-style="
+      :cell-style="
         ({ data }) => {
           return data.map((partData) =>
             partData.digits.map((digit) =>

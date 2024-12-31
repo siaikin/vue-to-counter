@@ -136,6 +136,7 @@ export default defineComponent({
 
     const vueToCounterProps = reactiveOmit(props, [
       "precision",
+      "value",
       "initialValue",
     ]);
     return () => (

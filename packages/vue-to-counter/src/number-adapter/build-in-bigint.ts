@@ -1,5 +1,8 @@
 import { NumberAdapter } from "./types";
 
+/**
+ * @deprecated
+ */
 const BuildInBigintAdapter: () => NumberAdapter<bigint> = () => ({
   create(value: string | number | bigint): bigint {
     return BigInt(value);

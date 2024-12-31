@@ -1,9 +1,9 @@
 /**
- * 可以使用不同数字类型, 如 int, bigint, decimal.js 等
+ * 可以使用不同数字类型, 如 int, ~~bigint~~, decimal.js 等
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export interface NumberAdapter<T = any> {
-  create(value: string | number | bigint): T;
+  create(value: string | number): T;
   add(a: T, b: T): T;
   sub(a: T, b: T): T;
   mul(a: T, b: T | number): T;

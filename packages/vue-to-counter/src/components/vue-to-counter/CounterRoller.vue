@@ -210,6 +210,10 @@ const rollerCellStyle = computed(
 );
 
 // 处理动画开始/结束事件
+const animateDigitTotal = computed(
+  () => testResults.value.flat().filter(({ animate }) => animate).length
+);
+const animatedDigitCount = ref(0);
 watch(
   testResults,
   (testResultsValue) => {
@@ -227,10 +231,6 @@ watch(
   },
   { immediate: true }
 );
-const animateDigitTotal = computed(
-  () => testResults.value.flat().filter(({ animate }) => animate).length
-);
-const animatedDigitCount = ref(0);
 watch([animatedDigitCount, animateDigitTotal], ([animated, total]) => {
   if (animated < total) return;
 

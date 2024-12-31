@@ -4,7 +4,7 @@ import MatchMaker_phone from "../assets/MatchMaker_phone.png";
 import MatchingSpinnerTiles from "../assets/MatchingSpinnerTiles1.png";
 import GBJenLei from "../assets/GBJenLei-Medium.woff2";
 
-const digitToChar = ref([
+const rollerList = [
   "派对捣蛋鬼",
   "卖糖术神",
   "潜行开锁者",
@@ -74,7 +74,13 @@ const digitToChar = ref([
   "动物园园长",
   "机械工程师",
   "鱼人先知",
-]);
+];
+const digitToChar = ref(
+  rollerList.reduce((acc, cur, index) => {
+    acc[String.fromCodePoint(index)] = cur;
+    return acc;
+  }, {})
+);
 const animationOptions = ref({
   ease: (x) => {
     const n1 = 7.5625;
@@ -105,14 +111,32 @@ const keyframes = ({ value, direction }) => {
 const value = ref(0);
 
 const partDataOptions = ref({
-  sampleCount: digitToChar.value.length,
-  sampling: () => digitToChar.value.map((_, index) => index),
+  sampleCount: rollerList.length,
+  sampling: () => rollerList.map((_, index) => index),
 });
 
 function switchString() {
-  value.value = Math.floor(Math.random() * 1000) % digitToChar.value.length;
+  value.value = Math.floor(Math.random() * 1000) % rollerList.length;
 }
 
+function cellStyle({ data }) {
+  return data.map((partData) =>
+    partData.digits.map((digit) =>
+      digit.data.map((_, i, array) => ({
+        position: "absolute",
+        opacity: 1,
+        top: 0,
+        bottom: "auto",
+        backgroundImage: `url(${MatchingSpinnerTiles})`,
+        backgroundSize: "cover",
+        backgroundPositionY:
+          i % 3 === 0 ? "-1px" : i % 3 === 1 ? "-24px" : "-48px",
+        // backgroundPositionY: '-1px',
+        transform: `rotateX(${(i * 360) / array.length}deg) translateZ(264px)`,
+      }))
+    )
+  );
+}
 onMounted(() => {
   document.fonts.add(
     new FontFace("GBJenLei", `url(${GBJenLei})`, {
@@ -126,7 +150,7 @@ onMounted(() => {
 <template>
   <div class="hearthstone-demo relative text-center bg-black">
     <div class="overflow-hidden">
-      <vue-to-counter
+      <vue-to-counter-string
         class="font-bold pt-40 pb-48 mb-8 -mt-2"
         :style="{
           fontSize: '16px',
@@ -139,7 +163,8 @@ onMounted(() => {
           `,
           fontFamily: 'GBJenLei',
         }"
-        :value="[value]"
+        :value="String.fromCodePoint(value)"
+        :alphabet="Object.keys(digitToChar).join('')"
         :digit-to-char="digitToChar"
         :min-places="[0, 0]"
         :duration="2"
@@ -147,25 +172,7 @@ onMounted(() => {
         :part-data-options="partDataOptions"
         :animation-options="animationOptions"
         :keyframes="keyframes"
-        :digit-style="
-          ({ data }) =>
-            data.map((partData) =>
-              partData.digits.map((digit) =>
-                digit.data.map((_, i, array) => ({
-                  position: 'absolute',
-                  opacity: 1,
-                  top: 0,
-                  bottom: 'auto',
-                  backgroundImage: `url(${MatchingSpinnerTiles})`,
-                  backgroundSize: 'cover',
-                  backgroundPositionY:
-                    i % 3 === 0 ? '-1px' : i % 3 === 1 ? '-24px' : '-48px',
-                  // backgroundPositionY: '-1px',
-                  transform: `rotateX(${(i * 360) / array.length}deg) translateZ(264px)`,
-                }))
-              )
-            )
-        "
+        :cell-style="cellStyle"
       />
     </div>
     <img

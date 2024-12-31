@@ -1,5 +1,12 @@
-import { defineComponent, computed, ref, watch, ExtractPropTypes } from "vue";
-import { toRefs, useMounted } from "@vueuse/core";
+import {
+  defineComponent,
+  computed,
+  ref,
+  watch,
+  ExtractPropTypes,
+  toRef,
+} from "vue";
+import { reactiveOmit, toRefs, useMounted } from "@vueuse/core";
 import {
   VueToCounterBaseEmits,
   VueToCounterBaseSlots,
@@ -7,6 +14,7 @@ import {
   VueToCounterStringProps,
 } from "./types";
 import VueToCounter from "./VueToCounter";
+import { anyBase } from "./utils/any-base";
 
 /**
  * 替换一些特定的字符.
@@ -16,35 +24,53 @@ const REPLACED_CHARS: Record<string, string> = {
   " ": "\xa0", // &nbsp;
 };
 
+const DecimalAlphabet = "0123456789";
+
 export default defineComponent({
-  name: "VueToCounterNumber",
+  name: "VueToCounterString",
   props: VueToCounterStringProps(),
   slots: VueToCounterBaseSlots,
   emits: VueToCounterBaseEmits,
+  inheritAttrs: false,
   setup: (props, { attrs, slots }) => {
-    const { stringAdapter } = toRefs(props);
+    const { value, initialValue, numberAdapter, stringAdapter } = toRefs(props);
+
+    // function toString(value: number[] | string): string {
+    //   if (isArray(value))
+    //     value = value.map((codePoint) => toChar(codePoint)).join("");
+    //   return value;
+    // }
+    // function toChar(value: number) {
+    //   return String.fromCodePoint(value + 48);
+    // }
 
     const alphabet = ref("");
-    const replacedValue = computed(() => props.value);
-    const initialValueChars = computed(() =>
-      stringAdapter.value.stringToChars(props.initialValue ?? "")
-    );
     const isMounted = useMounted();
     watch(
-      [replacedValue, stringAdapter],
-      ([value, stringAdapterValue], [oldValue]) => {
-        const charSet = new Set(
-          stringAdapterValue
-            .stringToChars(oldValue ?? "")
-            .concat(
-              stringAdapterValue.stringToChars(value ?? ""),
-              isMounted.value ? [] : initialValueChars.value
-            )
-        );
-        charSet.add("\x00");
+      [value, stringAdapter, toRef(props, "alphabet")],
+      ([value, stringAdapterValue, alphabetValue], [oldValue]) => {
+        if (alphabetValue) {
+          alphabet.value = alphabetValue;
+          return;
+        }
+
+        const allChars =
+          "\x00" +
+          (oldValue ?? "") +
+          (value ?? "") +
+          (isMounted.value ? "" : (initialValue.value ?? ""));
+
+        const charSet = new Set(stringAdapterValue.stringToChars(allChars));
         alphabet.value = Array.from(charSet).sort().join("");
       },
       { immediate: true }
+    );
+
+    const decimalToAnyBase = computed(() =>
+      anyBase(stringAdapter.value, DecimalAlphabet, alphabet.value)
+    );
+    const anyBaseToDecimal = computed(() =>
+      anyBase(stringAdapter.value, alphabet.value, DecimalAlphabet)
     );
 
     const digitToChar = computed(() => ({
@@ -57,14 +83,29 @@ export default defineComponent({
     >(() => ({
       fillChar: REPLACED_CHARS[" "],
       ...props.partDataOptions,
+      sampleToString: (value): string => {
+        const toAnyBase = decimalToAnyBase.value;
+        return toAnyBase(numberAdapter.value.toString(value));
+      },
     }));
+
+    const numberValue = computed(() =>
+      numberAdapter.value.create(anyBaseToDecimal.value(value.value))
+    );
+    const numberInitialValue = computed(() =>
+      initialValue.value
+        ? numberAdapter.value.create(anyBaseToDecimal.value(initialValue.value))
+        : undefined
+    );
+
+    const vueToCounterProps = reactiveOmit(props, ["value", "initialValue"]);
 
     return () => (
       <VueToCounter
-        {...props}
+        {...vueToCounterProps}
         {...attrs}
-        value={replacedValue.value}
-        alphabet={alphabet.value}
+        value={numberValue.value}
+        initialValue={numberInitialValue.value}
         digitToChar={digitToChar.value}
         partDataOptions={partDataOptions.value}
       >

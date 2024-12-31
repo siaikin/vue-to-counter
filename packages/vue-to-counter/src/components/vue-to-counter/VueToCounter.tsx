@@ -12,15 +12,7 @@ import {
 import CounterRoller from "./CounterRoller.vue";
 import { useDirection } from "./composables/use-direction";
 import { PartDataOptions, usePartData } from "./composables/use-part-data";
-import { anyBase } from "./utils/any-base";
-import {
-  clone,
-  isArray,
-  isEqual,
-  isNumber,
-  isObject,
-  isString,
-} from "lodash-es";
+import { clone, isArray, isEqual, isObject } from "lodash-es";
 import { toRefs, watchWithFilter } from "@vueuse/core";
 import {
   VueToCounterBaseEmits,
@@ -30,8 +22,6 @@ import {
 import { transitionDigit } from "./utils/transition-digit";
 
 import "./VueToCounter.scss";
-
-const DecimalAlphabet = "0123456789";
 
 export default defineComponent({
   name: "VueToCounter",
@@ -86,62 +76,30 @@ export default defineComponent({
 
       return result;
     });
+    function toChar(value: number) {
+      return String.fromCodePoint(value + 48);
+    }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const valueDifferences = ref<[any, any]>([
       numberAdapter.value.create(0),
       numberAdapter.value.create(0),
     ]);
-    /**
-     *
-     */
-    const needToConvert = ref(false);
 
-    const alphabet = computed(() => {
-      const _value = value.value;
-
-      if (!props.alphabet) {
-        if (!isString(_value)) return DecimalAlphabet;
-        return Array.from(
-          new Set(stringAdapter.value.stringToChars(_value))
-        ).join("");
-      }
-
-      return props.alphabet;
-    });
-
-    const decimalToAnyBase = computed(() =>
-      anyBase(stringAdapter.value, DecimalAlphabet, alphabet.value)
-    );
-    const anyBaseToDecimal = computed(() =>
-      anyBase(stringAdapter.value, alphabet.value, DecimalAlphabet)
-    );
     watch(
       [value, numberAdapter],
-      ([value], [oldValue]) => {
-        oldValue = oldValue ?? value;
-
-        needToConvert.value = !isNumber(value) || !isNumber(oldValue);
-
-        const decimalValue = toNumber(value);
-        const oldDecimalValue = toNumber(oldValue);
-
-        valueDifferences.value = [decimalValue, oldDecimalValue] as const;
+      ([value, na], [oldValue, oldNa]) => {
+        if (na === oldNa) {
+          valueDifferences.value = [value, oldValue ?? value];
+        } else {
+          /**
+           * adapter 变化时, 保证 `valueDifferences` 新旧值类型一致.
+           */
+          valueDifferences.value = [value, value];
+        }
       },
       { immediate: true }
     );
-    function toNumber(value: string | number | number[] | bigint) {
-      if (isNumber(value) || typeof value === "bigint")
-        return numberAdapter.value.create(value);
-
-      if (isArray(value))
-        value = value.map((codePoint) => toChar(codePoint)).join("");
-
-      return numberAdapter.value.create(anyBaseToDecimal.value(value));
-    }
-    function toChar(value: number) {
-      return String.fromCodePoint(value + 48);
-    }
 
     const direction = useDirection(numberAdapter, valueDifferences);
 
@@ -166,13 +124,7 @@ export default defineComponent({
         const toString =
           props.partDataOptions?.sampleToString ?? numberAdapter.value.toString;
 
-        // todo bigint need to convert ?
-        if (needToConvert.value) {
-          const toAnyBase = decimalToAnyBase.value;
-          return toAnyBase(toString(value));
-        } else {
-          return toString(value);
-        }
+        return toString(value);
       },
     }));
     const durationPartData = usePartData(

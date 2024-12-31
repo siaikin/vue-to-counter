@@ -31,8 +31,7 @@ export function transitionDigit<
 
   const result: V[] = [];
   for (let i = 0; i < count; i++) {
-    // const percent = na.div(na.create(i), na.create(Math.max(count - 1, 1)));
-    const percent = i / Math.max(count - 1, 1);
+    const percent = na.div(na.create(i), na.create(Math.max(count - 1, 1)));
     result.push(interpolateFunc(percent));
   }
 
@@ -50,7 +49,7 @@ function interpolateRound<
   V = ExtractNumberAdapterType<NS>,
 >(na: NS, a: V, b: V) {
   return function (t: number) {
-    return na.round(na.add(na.mul(a, 1 - t), na.mul(b, t)));
+    return na.round(na.add(na.mul(a, na.sub(na.create(1), t)), na.mul(b, t)));
   };
 }
 
@@ -65,6 +64,6 @@ function interpolateNumber<
   V = ExtractNumberAdapterType<NS>,
 >(na: NS, a: V, b: V) {
   return function (t: number) {
-    return na.add(na.mul(a, 1 - t), na.mul(b, t));
+    return na.add(na.mul(a, na.sub(na.create(1), t)), na.mul(b, t));
   };
 }
