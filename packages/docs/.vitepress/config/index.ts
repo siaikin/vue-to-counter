@@ -2,7 +2,7 @@ import { defineConfig } from "vitepress";
 import { fileURLToPath } from "node:url";
 import Footnote from "markdown-it-footnote";
 import zh from "./zh";
-import en from "./en";
+// import en from "./en";
 
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
@@ -16,7 +16,7 @@ export default defineConfig({
 
   locales: {
     root: { label: "简体中文", ...zh },
-    en: { label: "English", ...en },
+    // en: { label: "English", ...en },
   },
   themeConfig: {
     logo: "../logo.svg",

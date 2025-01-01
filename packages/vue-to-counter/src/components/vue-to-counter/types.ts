@@ -9,10 +9,6 @@ import type { Decimal } from "decimal.js";
 
 export const VueToCounterBaseProps = <T>() =>
   ({
-    value: {
-      type: null as unknown as PropType<T>,
-      required: true,
-    },
     /**
      * 如果初始值被设置, 组件初始化时会使用该值而不是 `value`, 然后在初始化完成后, 将内部值更新为 `value`.
      *
@@ -192,10 +188,14 @@ export const VueToCounterBaseEmits = {
 
 export const VueToCounterDatetimeProps = () =>
   ({
+    ...VueToCounterBaseProps<Date | number | string>(),
     /**
      * 传入 `number`, `string` 时, `value` 将作为创建 `Date` 的参数.
      */
-    ...VueToCounterBaseProps<Date | number | string>(),
+    value: {
+      type: null as unknown as PropType<Date | number | string>,
+      required: true,
+    },
     /**
      * 计数器显示的精度.
      * 1. 当为单个值时, 表示最小精度.
@@ -225,6 +225,17 @@ export const VueToCounterDatetimeDurationProps = () => {
     ...VueToCounterBaseProps<
       [Date | number | string, Date | number | string]
     >(),
+    /**
+     * 要求传入一个长度为 2 的数组, 分别表示开始时间和结束时间.
+     *
+     * 传入 `number`, `string` 时, `value` 将作为创建 `Date` 的参数.
+     */
+    value: {
+      type: null as unknown as PropType<
+        [Date | number | string, Date | number | string]
+      >,
+      required: true,
+    },
     precision: vueToCounterDatetimeProps.precision,
     minPlaces: vueToCounterDatetimeProps.minPlaces,
   } as const;
@@ -232,10 +243,14 @@ export const VueToCounterDatetimeDurationProps = () => {
 
 export const VueToCounterNumberProps = () =>
   ({
+    ...VueToCounterBaseProps<number | string>(),
     /**
      * 当数字足够大使得 `Number` 丢失精度时, 可以使用 `DecimalJsAdapter` 作为适配器. 并使用 `string` 作为 `value` 的类型.
      */
-    ...VueToCounterBaseProps<number | string>(),
+    value: {
+      type: null as unknown as PropType<number | string>,
+      required: true,
+    },
     /**
      * 本地化数字格式化配置. 传入 `true` 时使用浏览器的默认配置.
      *
@@ -251,11 +266,15 @@ export const VueToCounterNumberProps = () =>
 
 export const VueToCounterStringProps = () =>
   ({
+    ...VueToCounterBaseProps<string>(),
     /**
      * 支持传入 `string`, 其中每个字符在去重后作为一个进制位, 然后将字符串转换为数字进行插值.
      * 例: "Hello" -> ["H", "e", "l", "o"] 得到一个四进制映射数组. "Hello" 可以转换为四进制数, 进而转换为十进制数.
      */
-    ...VueToCounterBaseProps<string>(),
+    value: {
+      type: null as unknown as PropType<number | string>,
+      required: true,
+    },
     /**
      * 自定义字符集, 传入的 `value` 的字符串表示形式的每个字符都**必须**被包含在该字符集中.
      *
@@ -266,16 +285,20 @@ export const VueToCounterStringProps = () =>
     },
   }) as const;
 
-/**
- * 支持的数值类型有 `number`, 和 `Decimal`.
- * 1. `number`: 表示一个整数或浮点数. 内部直接根据数字进行插值.
- // * 3. {@link number[]} 表示一个整数数组. 这是 {@link string} 的变体, 数字数组的每一项表示一个代码点,
- // *    内部通过 {@link String.fromCodePoint} 将其转换为字符串, 然后按照 {@link string} 的规则进行插值.
- * 4. `Decimal`: 表示一个 Decimal.js 实例.
- */
 export const VueToCounterProps = () =>
   ({
     ...VueToCounterBaseProps<number | Decimal>(),
+    /**
+     * 支持的数值类型有 `number`, 和 `Decimal`.
+     * 1. `number`: 表示一个整数或浮点数. 内部直接根据数字进行插值.
+     // * 3. {@link number[]} 表示一个整数数组. 这是 {@link string} 的变体, 数字数组的每一项表示一个代码点,
+     // *    内部通过 {@link String.fromCodePoint} 将其转换为字符串, 然后按照 {@link string} 的规则进行插值.
+     * 4. `Decimal`: 表示一个 Decimal.js 实例.
+     */
+    value: {
+      type: null as unknown as PropType<number | string>,
+      required: true,
+    },
     tag: {
       type: String,
       default: "span",

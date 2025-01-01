@@ -26,7 +26,7 @@
         */
         //@apply inline-block leading-tight;
 
-        @apply flex-none inline-block;
+        @apply inline-block;
 
         .roller-part-digit {
           @apply inline-block relative;
@@ -35,7 +35,7 @@
     }
 
     .roller-part__unit {
-      @apply flex-none inline-block;
+      @apply inline-block;
     }
 
     .placeholder {

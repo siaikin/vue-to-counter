@@ -61,7 +61,7 @@ export default defineComponent({
           (isMounted.value ? "" : (initialValue.value ?? ""));
 
         const charSet = new Set(stringAdapterValue.stringToChars(allChars));
-        alphabet.value = Array.from(charSet).sort().join("");
+        alphabet.value = Array.from(charSet).join("");
       },
       { immediate: true }
     );
