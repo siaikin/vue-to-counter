@@ -272,7 +272,7 @@ export const VueToCounterStringProps = () =>
      * 例: "Hello" -> ["H", "e", "l", "o"] 得到一个四进制映射数组. "Hello" 可以转换为四进制数, 进而转换为十进制数.
      */
     value: {
-      type: null as unknown as PropType<number | string>,
+      type: null as unknown as PropType<string>,
       required: true,
     },
     /**
