@@ -1,6 +1,6 @@
 {
   "name": "vue-to-counter",
-  "version": "1.0.0",
+  "version": "1.0.4",
   "type": "module",
   "module": "dist/index.js",
   "main": "dist/index.cjs",
