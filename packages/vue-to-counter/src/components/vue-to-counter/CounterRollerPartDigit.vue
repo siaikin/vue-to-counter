@@ -8,7 +8,6 @@ import {
   toRefs,
   toValue,
 } from "vue";
-import { v4 as uuid } from "uuid";
 import { useElementSize, watchTriggerable } from "@vueuse/core";
 import { PartDataDigit } from "./types";
 import { RollerPartTestResult } from "./composables/use-roller-part-test";
@@ -17,6 +16,7 @@ import type { DOMKeyframesDefinition } from "motion";
 import type { DynamicAnimationOptions } from "framer-motion/dom";
 import { isString, merge, omit } from "lodash-es";
 import * as PennerEasingFunctions from "./easing/penner-easing-functions";
+import { uuid } from "./utils/uuid";
 
 const props = defineProps({
   partId: {
