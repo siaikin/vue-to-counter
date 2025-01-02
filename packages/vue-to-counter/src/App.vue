@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
 
+// test
 const debug = ref(true);
 const value = ref(0);
 const color = ref(
