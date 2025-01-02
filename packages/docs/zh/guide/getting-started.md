@@ -90,6 +90,6 @@ import DemoContainer from "../../components/DemoContainer.vue";
 
 ## 下一步
 
-- 想查看更多 `VueToCounter` 的示例？请查看 [示例](/guide/examples/simple-usage)。
-- 要了解 `VueToCounter` 的配置参数？请查看 [配置和API](/reference/)。
-- 要探索 `VueToCounter` 样式和动画更多的可能性，例如实现[这样](./examples/logo)的效果？你可以从 [深入 VueToCounter](/guide/vue-to-counter-in-depth) 开始。
+- 想查看更多 `VueToCounter` 的示例？请查看 [示例](./examples/simple-usage)。
+- 要了解 `VueToCounter` 的配置参数？请查看 [配置和API](../reference/api)。
+- 要探索 `VueToCounter` 样式和动画更多的可能性，例如实现[这样](./examples/logo)的效果？你可以从 [深入 VueToCounter](./vue-to-counter-in-depth) 开始。

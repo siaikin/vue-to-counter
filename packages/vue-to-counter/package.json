@@ -8,6 +8,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "prebuild": "npm run component-meta",
     "type-check": "vue-tsc -b",
     "preview": "vite preview",
     "prepare": "husky install",

@@ -31,7 +31,7 @@ import { useEventBus } from "./composables/use-event-bus";
 
 const props = defineProps({
   container: {
-    type: HTMLElement as PropType<HTMLElement>,
+    type: null as unknown as PropType<HTMLElement>,
   },
   value: {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

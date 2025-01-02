@@ -1,7 +1,6 @@
 <script setup>
 import { computed, ref, toRaw, toRefs } from "vue";
 import { data } from "../loader/component-meta.data";
-console.log(data);
 
 const props = defineProps({
   name: {
