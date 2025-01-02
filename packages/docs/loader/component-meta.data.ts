@@ -51,7 +51,7 @@ function createComponentMetaLoader() {
   }
 
   return {
-    async load() {
+    async load(): Promise<Record<string, ComponentMetaData>> {
       const md = await createMarkdownRenderer(
         config.srcDir,
         config.markdown,
