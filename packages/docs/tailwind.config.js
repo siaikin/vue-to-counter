@@ -5,6 +5,7 @@ export default {
     "./**/*.{js,ts,jsx,tsx,md,vue}",
     ".vitepress/**/*.{js,ts,jsx,tsx,md,vue}",
     "!.vitepress/cache/**/*",
+    "!node_modules/**/*",
   ],
   theme: {
     extend: {},

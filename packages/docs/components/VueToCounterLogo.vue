@@ -62,7 +62,7 @@ const keyframes = ({ testResults, direction }) => {
                 char === '文'
                   ? {
                       fontSize: '0.8em',
-                      marginBottom: '6px',
+                      marginTop: '6px',
                     }
                   : { margin: '0 4px' }
               )
