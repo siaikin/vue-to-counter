@@ -55,14 +55,15 @@ const keyframes = ({ testResults, direction }) => {
       :animation-options="animationOptions"
       :keyframes="keyframes"
       :cell-style="
-        ({ data }) => {
+        ({ data, direction }) => {
           return data.map((partData) =>
             partData.digits.map((digit) =>
               digit.data.map((char) =>
                 char === '文'
                   ? {
                       fontSize: '0.8em',
-                      marginTop: '6px',
+                      [direction === 'up' ? 'marginTop' : 'marginBottom']:
+                        '6px',
                     }
                   : { margin: '0 4px' }
               )

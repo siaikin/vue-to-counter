@@ -64,7 +64,8 @@ export default defineComponent({
         const charSet = new Set(stringAdapterValue.stringToChars(allChars));
         alphabet.value = Array.from(charSet).sort().join("");
 
-        oldValue.value = _oldValue ?? value;
+        oldValue.value =
+          (isMounted.value ? _oldValue : initialValue.value) ?? value;
       },
       { immediate: true }
     );
