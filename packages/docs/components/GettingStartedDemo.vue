@@ -1,8 +1,10 @@
 <script setup>
-import { ref } from "vue";
+import { onMounted, ref } from "vue";
 
 const userCount = ref(1000);
-setInterval(() => (userCount.value += Math.floor(Math.random() * 10)), 1100);
+onMounted(() => {
+  setInterval(() => (userCount.value += Math.floor(Math.random() * 10)), 1100);
+});
 </script>
 
 <template>

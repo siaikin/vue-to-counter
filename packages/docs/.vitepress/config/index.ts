@@ -42,5 +42,15 @@ export default defineConfig({
         },
       ],
     },
+    css: {
+      preprocessorOptions: {
+        scss: {
+          /**
+           * @see https://cn.vite.dev/config/shared-options#css-preprocessoroptions
+           */
+          api: "modern-compiler",
+        },
+      },
+    },
   },
 });

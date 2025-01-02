@@ -1,14 +1,14 @@
 <script setup>
-import {ref} from "vue"; 
+import {onMounted, ref} from "vue"; 
 import {useData} from "vitepress"; 
 import VueToCounterText from "../../components/VueToCounterText.vue";
 
 const { site } = useData();
 const userCount = ref(10000);
-setInterval(() => userCount.value += Math.floor(Math.random() * 10), 2000);
+onMounted(() => setInterval(() => userCount.value += Math.floor(Math.random() * 10), 2000));
 
 const now = ref(new Date());
-setInterval(() => now.value = new Date(), 2000);
+onMounted(() => setInterval(() => now.value = new Date(), 2000));
 const nextMonth = new Date();
 nextMonth.setMonth(nextMonth.getMonth() + 1);
 nextMonth.setDate(0);
