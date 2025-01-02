@@ -5,6 +5,8 @@ import HearthstoneDemo from "../../../components/HearthstoneDemo.vue";
 
 # 炉石传说排队界面模拟
 
+## 示例
+
 <HearthstoneDemo />
 
 ::: danger

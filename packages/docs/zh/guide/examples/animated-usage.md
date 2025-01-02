@@ -12,21 +12,31 @@ import AdvancedEasingDemo from "../../../components/AdvancedEasingDemo.vue";
 
 ## 延时
 
-<DemoContainer><AdvancedDelayDemo /></DemoContainer>
+<DemoContainer title="延时">
+<AdvancedDelayDemo />
+<hr />
+
 ::: details 点击查看代码
 ::: code-group
 <<< @/components/AdvancedDelayDemo.vue{vue} [AdvancedDelayDemo]
 <<< @/components/DemoContainer.vue{vue} [DemoContainer]
 :::
 
+</DemoContainer>
+
 ## 缓动
 
 为了更容易观察缓动效果，可调整动画时长并调大了字体。
 
-<DemoContainer><AdvancedEasingDemo /></DemoContainer>
+<DemoContainer title="缓动">
+<AdvancedEasingDemo />
+<hr />
+
 ::: details 点击查看代码
 ::: code-group
 <<< @/components/AdvancedEasingDemo.vue{vue} [AdvancedEasingDemo]
 <<< @/components/EasingView.vue{vue} [EasingView]
 <<< @/components/DemoContainer.vue{vue} [DemoContainer]
 :::
+
+</DemoContainer>

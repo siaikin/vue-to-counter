@@ -51,8 +51,9 @@ import StringAdapterDemo from "../../components/StringAdapterDemo.vue";
 >
 > 观察精度丢失的情况。
 
-<DemoContainer>
+<DemoContainer title="数字适配器">
 <NumberAdapterDemo />
+<hr />
 
 ::: details 点击查看代码
 ::: code-group
@@ -82,8 +83,9 @@ import StringAdapterDemo from "../../components/StringAdapterDemo.vue";
 > - `👩🏿`：可修饰的基础 emoji + emoji 修饰符
 > - `🧑‍💻`：emoji 组合序列
 
-<DemoContainer>
+<DemoContainer title="字符串适配器">
 <StringAdapterDemo />
+<hr />
 
 ::: details 点击查看代码
 ::: code-group

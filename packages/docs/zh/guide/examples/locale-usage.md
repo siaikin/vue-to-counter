@@ -17,12 +17,17 @@ VueToCounter 内部将调用 [Intl](https://developer.mozilla.org/en-US/docs/Web
 
 ## 时间间隔本地化
 
-<DemoContainer><LocaleDatetimeDurationDemo /></DemoContainer>
+<DemoContainer title="时间间隔本地化">
+<LocaleDatetimeDurationDemo />
+<hr />
+
 ::: details 点击查看代码
 ::: code-group
 <<< @/components/LocaleDatetimeDurationDemo.vue{vue} [LocaleDatetimeDurationDemo]
 <<< @/components/DemoContainer.vue{vue} [DemoContainer]
 :::
+
+</DemoContainer>
 
 ## 数字本地化
 
@@ -31,9 +36,14 @@ VueToCounter 内部将调用 [Intl](https://developer.mozilla.org/en-US/docs/Web
 - 你可以将其设置为 `true` ，这将使用默认配置启用数字本地化。
 - 也可以设置为 [Intl.NumberFormat 支持的选项](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/NumberFormat/NumberFormat#options)。
 
-<DemoContainer><LocaleNumberDemo /></DemoContainer>
+<DemoContainer title="数字本地化">
+<LocaleNumberDemo />
+<hr />
+
 ::: details 点击查看代码
 ::: code-group
 <<< @/components/LocaleNumberDemo.vue{vue} [LocaleNumberDemo]
 <<< @/components/DemoContainer.vue{vue} [DemoContainer]
 :::
+
+</DemoContainer>

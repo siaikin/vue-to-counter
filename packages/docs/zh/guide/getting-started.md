@@ -82,11 +82,14 @@ import DemoContainer from "../../components/DemoContainer.vue";
 
 </script>
 
-<DemoContainer><GettingStartedDemo /></DemoContainer>
+<DemoContainer title="快速开始">
+<GettingStartedDemo />
+<hr />
 
 ::: code-group
 <<< @/components/GettingStartedDemo.vue{4,5,11 vue} [GettingStartedDemo]
 :::
+</DemoContainer>
 
 ## 下一步
 
