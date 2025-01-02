@@ -45,10 +45,11 @@ export default defineComponent({
     // }
 
     const alphabet = ref("");
+    const oldValue = ref("");
     const isMounted = useMounted();
     watch(
       [value, stringAdapter, toRef(props, "alphabet")],
-      ([value, stringAdapterValue, alphabetValue], [oldValue]) => {
+      ([value, stringAdapterValue, alphabetValue], [_oldValue]) => {
         if (alphabetValue) {
           alphabet.value = alphabetValue;
           return;
@@ -56,12 +57,14 @@ export default defineComponent({
 
         const allChars =
           "\x00" +
-          (oldValue ?? "") +
+          (_oldValue ?? "") +
           (value ?? "") +
           (isMounted.value ? "" : (initialValue.value ?? ""));
 
         const charSet = new Set(stringAdapterValue.stringToChars(allChars));
-        alphabet.value = Array.from(charSet).join("");
+        alphabet.value = Array.from(charSet).sort().join("");
+
+        oldValue.value = _oldValue ?? value;
       },
       { immediate: true }
     );
@@ -92,6 +95,9 @@ export default defineComponent({
     const numberValue = computed(() =>
       numberAdapter.value.create(anyBaseToDecimal.value(value.value))
     );
+    const oldNumberValue = computed(() =>
+      numberAdapter.value.create(anyBaseToDecimal.value(oldValue.value))
+    );
     const numberInitialValue = computed(() =>
       initialValue.value
         ? numberAdapter.value.create(anyBaseToDecimal.value(initialValue.value))
@@ -105,6 +111,7 @@ export default defineComponent({
         {...vueToCounterProps}
         {...attrs}
         value={numberValue.value}
+        oldValue={oldNumberValue.value}
         initialValue={numberInitialValue.value}
         digitToChar={digitToChar.value}
         partDataOptions={partDataOptions.value}

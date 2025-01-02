@@ -296,8 +296,16 @@ export const VueToCounterProps = () =>
      * 4. `Decimal`: 表示一个 Decimal.js 实例.
      */
     value: {
-      type: null as unknown as PropType<number | string>,
+      type: null as unknown as PropType<number | Decimal>,
       required: true,
+    },
+    /**
+     * 旧值, 我们通过新值和旧值的变化来生成滚动数据. 默认情况下, 旧值为 @default `value` 的上一个值.
+     *
+     * 在某些情况下, 你可能不希望使用默认值, 这时你可以通过该属性传入旧值.
+     */
+    oldValue: {
+      type: null as unknown as PropType<number | Decimal>,
     },
     tag: {
       type: String,

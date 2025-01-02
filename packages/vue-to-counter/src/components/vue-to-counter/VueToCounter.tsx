@@ -31,6 +31,7 @@ export default defineComponent({
   setup: (props, { slots }) => {
     const {
       initialValue,
+      oldValue: outerOldValue,
       color,
       minPlaces,
       tag,
@@ -90,7 +91,10 @@ export default defineComponent({
       [value, numberAdapter],
       ([value, na], [oldValue, oldNa]) => {
         if (na === oldNa) {
-          valueDifferences.value = [value, oldValue ?? value];
+          valueDifferences.value = [
+            value,
+            outerOldValue.value ?? oldValue ?? value,
+          ];
         } else {
           /**
            * adapter 变化时, 保证 `valueDifferences` 新旧值类型一致.
