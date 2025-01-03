@@ -5,6 +5,7 @@
   "module": "dist/index.js",
   "main": "dist/index.cjs",
   "types": "dist/types/index.d.ts",
+  "license": "MIT",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
