@@ -1,9 +1,5 @@
 # 快速开始
 
-## 在线尝试
-
-可以直接在 [StackBlitz](https://stackblitz.com/edit/vitejs-vite-32bxkk?file=src%2Fcomponents%2FComponentToPrint.vue) 上在线尝试。
-
 ## 安装
 
 ### 前置准备
