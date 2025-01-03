@@ -7,6 +7,7 @@ import zh from "./zh";
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
   title: "Vue To Counter",
+  head: [["link", { rel: "icon", href: "/favicon.svg" }]],
 
   rewrites: {
     "zh/:rest*": ":rest*",
@@ -19,7 +20,7 @@ export default defineConfig({
     // en: { label: "English", ...en },
   },
   themeConfig: {
-    logo: "../logo.svg",
+    logo: "../favicon.svg",
     socialLinks: [
       { icon: "github", link: "https://github.com/siaikin/vue-to-counter" },
     ],
