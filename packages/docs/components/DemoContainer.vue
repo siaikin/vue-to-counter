@@ -1,7 +1,8 @@
 <script setup>
-import CodeSandboxLogo from "../assets/CodeSandboxLogo.svg";
+import StackblitzLogo from "../assets/stackblitz-logo.svg";
 import { ref, toRefs } from "vue";
-import { getCodeSandboxParams } from "./generate-codesandbox-params";
+import { getCodeStackblitzParams } from "./generate-stackblitz-params";
+import sdk from "@stackblitz/sdk";
 import packageInfo from "../../vue-to-counter/package.json";
 
 const props = defineProps({
@@ -14,22 +15,16 @@ const { title } = toRefs(props);
 
 const containerRef = ref();
 
-function handleCodeSandbox() {
+function handleStackblitz() {
   if (!containerRef.value) return;
 
   const code = containerRef.value.querySelector("div.active code").textContent;
-  const params = getCodeSandboxParams(code, {
+  const params = getCodeStackblitzParams(code, {
     title: `${title.value} - vue-to-counter@${packageInfo.version}`,
   });
-  const div = document.createElement("div");
-  div.style.display = "none";
-  div.innerHTML = `<form action="https://codesandbox.io/api/v1/sandboxes/define" method="POST" target="_blank">
-        <input type="hidden" name="parameters" value="${params}" />
-        <input type="submit" value="Open in sandbox" />
-      </form>`;
-  document.body.appendChild(div);
-  div.firstElementChild.submit();
-  document.body.removeChild(div);
+  sdk.openProject(params, {
+    openFile: "src/demo.vue",
+  });
 }
 </script>
 
@@ -38,11 +33,15 @@ function handleCodeSandbox() {
     <div class="flex relative">
       <span class="flex-auto" />
       <span
-        title="Open In CodeSandbox"
-        class="inline-block p-1 cursor-pointer hover:scale-110"
-        @click="handleCodeSandbox"
+        title="Open In Stackblitz"
+        class="inline-block p-1 cursor-pointer hover:outline hover:outline-[#1389FD] outline-1"
+        @click="handleStackblitz"
       >
-        <img class="h-4" :src="CodeSandboxLogo" alt="CodeSandbox Logo" />
+        <img
+          class="h-4 w-4 pointer-events-none"
+          :src="StackblitzLogo"
+          alt="CodeSandbox Logo"
+        />
       </span>
     </div>
     <hr />
